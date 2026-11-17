@@ -1,0 +1,191 @@
+---
+/**
+ * The big cup. Drawn as separate parts so the story can move them:
+ *  - .cup-coffee  : the coffee surface (rises as the cup fills)
+ *  - .cup-crema   : the crema that forms once it's full
+ *  - .cup-steam   : steam wisps above the rim
+ * `uid` keeps gradient ids unique when the cup appears twice on a page.
+ */
+interface Props {
+  uid: string;
+  class?: string;
+  steamWisps?: number;
+}
+const { uid, class: className = '', steamWisps = 3 } = Astro.props;
+const id = (s: string) => `${uid}-${s}`;
+const wispPaths = [
+  'M150 400 C120 330 190 290 160 220 S110 120 150 40',
+  'M110 400 C90 340 140 300 118 240 S80 150 112 80',
+  'M195 400 C215 340 170 300 196 236 S236 140 200 70',
+];
+---
+
+<div class:list={['cup', className]} data-cup>
+  <div class="cup-steam" aria-hidden="true" data-cup-steam>
+    <svg viewBox="0 0 300 420" preserveAspectRatio="xMidYMax meet" focusable="false">
+      {
+        wispPaths.slice(0, steamWisps).map((d, i) => (
+          <path class={`wisp wisp-${i + 1}`} d={d} fill="none" stroke-linecap="round" />
+        ))
+      }
+    </svg>
+  </div>
+
+  <svg class="cup-svg" viewBox="0 0 600 500" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id={id('shadow')} cx="50%" cy="50%" r="50%">
+        <stop offset="0" style="stop-color:var(--color-roast-950);stop-opacity:.55"></stop>
+        <stop offset="1" style="stop-color:var(--color-roast-950);stop-opacity:0"></stop>
+      </radialGradient>
+      <linearGradient id={id('saucer')} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style="stop-color:var(--color-foam-50)"></stop>
+        <stop offset="1" style="stop-color:var(--color-foam-300)"></stop>
+      </linearGradient>
+      <linearGradient id={id('body')} x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" style="stop-color:var(--color-foam-200)"></stop>
+        <stop offset=".28" style="stop-color:var(--color-foam-50)"></stop>
+        <stop offset=".62" style="stop-color:var(--color-foam-100)"></stop>
+        <stop offset=".9" style="stop-color:var(--color-foam-300)"></stop>
+        <stop offset="1" style="stop-color:var(--color-crema-300)"></stop>
+      </linearGradient>
+      <linearGradient id={id('bodyShade')} x1="0" y1="0" x2="0" y2="1">
+        <stop offset=".45" style="stop-color:var(--color-roast-700);stop-opacity:0"></stop>
+        <stop offset="1" style="stop-color:var(--color-roast-700);stop-opacity:.35"></stop>
+      </linearGradient>
+      <linearGradient id={id('inside')} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style="stop-color:var(--color-foam-300)"></stop>
+        <stop offset=".7" style="stop-color:var(--color-foam-200)"></stop>
+        <stop offset="1" style="stop-color:var(--color-foam-100)"></stop>
+      </linearGradient>
+      <radialGradient id={id('kopi')} cx="50%" cy="45%" r="55%">
+        <stop offset="0" style="stop-color:var(--color-roast-600)"></stop>
+        <stop offset=".7" style="stop-color:var(--color-roast-800)"></stop>
+        <stop offset="1" style="stop-color:var(--color-roast-950)"></stop>
+      </radialGradient>
+      <radialGradient id={id('crema')} cx="46%" cy="42%" r="56%">
+        <stop offset="0" style="stop-color:var(--color-crema-300)"></stop>
+        <stop offset=".55" style="stop-color:var(--color-crema-400)"></stop>
+        <stop offset=".86" style="stop-color:var(--color-crema-500)"></stop>
+        <stop offset="1" style="stop-color:var(--color-roast-700)"></stop>
+      </radialGradient>
+      <clipPath id={id('mouth')}>
+        <ellipse cx="300" cy="172" rx="187" ry="51"></ellipse>
+      </clipPath>
+      <filter id={id('soft')} x="-20%" y="-50%" width="140%" height="200%">
+        <feGaussianBlur stdDeviation="10"></feGaussianBlur>
+      </filter>
+    </defs>
+
+    <!-- shadow on the counter -->
+    <ellipse cx="300" cy="458" rx="270" ry="34" style={`fill:url(#${id('shadow')})`}></ellipse>
+
+    <!-- saucer -->
+    <ellipse cx="300" cy="432" rx="262" ry="56" style={`fill:url(#${id('saucer')})`}></ellipse>
+    <ellipse cx="300" cy="424" rx="250" ry="48" style="fill:var(--color-foam-100)"></ellipse>
+    <ellipse cx="300" cy="424" rx="150" ry="27" style="fill:var(--color-foam-200)"></ellipse>
+    <ellipse cx="300" cy="428" rx="118" ry="17" style="fill:var(--color-roast-900);opacity:.18" filter={`url(#${id('soft')})`}></ellipse>
+
+    <!-- handle -->
+    <path d="M492 214c78-14 104 34 92 70-12 40-58 64-128 72" fill="none" style="stroke:var(--color-foam-300)" stroke-width="28" stroke-linecap="round"></path>
+    <path d="M492 214c78-14 104 34 92 70-12 40-58 64-128 72" fill="none" style="stroke:var(--color-foam-100)" stroke-width="12" stroke-linecap="round" transform="translate(-3 -4)"></path>
+
+    <!-- body -->
+    <path d="M100 170c0 118 52 220 132 246q68 14 136 0c80-26 132-128 132-246a200 58 0 0 1-400 0Z" style={`fill:url(#${id('body')})`}></path>
+    <path d="M100 170c0 118 52 220 132 246q68 14 136 0c80-26 132-128 132-246a200 58 0 0 1-400 0Z" style={`fill:url(#${id('bodyShade')})`}></path>
+    <!-- terracotta glaze band -->
+    <path d="M103 206a197 57 0 0 0 394 0" fill="none" style="stroke:var(--color-terra-500)" stroke-width="7"></path>
+    <path d="M106 222a194 56 0 0 0 388 0" fill="none" style="stroke:var(--color-terra-500);opacity:.55" stroke-width="2.5"></path>
+
+    <!-- rim and inside -->
+    <ellipse cx="300" cy="170" rx="200" ry="58" style="fill:var(--color-foam-50)"></ellipse>
+    <ellipse cx="300" cy="172" rx="187" ry="51" style={`fill:url(#${id('inside')})`}></ellipse>
+
+    <g clip-path={`url(#${id('mouth')})`}>
+      <g class="cup-coffee" data-cup-coffee>
+        <ellipse cx="300" cy="176" rx="186" ry="50" style={`fill:url(#${id('kopi')})`}></ellipse>
+        <g class="cup-crema" data-cup-crema>
+          <ellipse cx="300" cy="176" rx="186" ry="50" style={`fill:url(#${id('crema')})`}></ellipse>
+          <path d="M228 168c26-16 74-20 108-6s30 34-8 38-70-6-100-32Z" style="fill:var(--color-crema-300);opacity:.55"></path>
+          <ellipse cx="248" cy="160" rx="40" ry="8" style="fill:var(--color-foam-50);opacity:.22"></ellipse>
+        </g>
+      </g>
+      <!-- the front wall's shadow on the inside -->
+      <path d="M113 172a187 51 0 0 0 374 0a187 40 0 0 1-374 0Z" style="fill:var(--color-roast-900);opacity:.18"></path>
+    </g>
+    <path d="M113 170a187 51 0 0 1 374 0" fill="none" style="stroke:var(--color-roast-700);opacity:.12" stroke-width="3"></path>
+  </svg>
+</div>
+
+<style>
+  .cup {
+    position: relative;
+  }
+  .cup-svg {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .cup-coffee {
+    transform-box: view-box;
+    transform-origin: 300px 176px;
+  }
+  .cup-steam {
+    position: absolute;
+    left: 18%;
+    width: 64%;
+    bottom: 60%;
+    height: 95%;
+    pointer-events: none;
+    transform-origin: 50% 100%;
+  }
+  .cup-steam svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .wisp {
+    stroke: var(--color-foam-50);
+    stroke-width: 18;
+    opacity: 0.35;
+    filter: blur(7px);
+  }
+  .wisp-2 {
+    stroke-width: 12;
+  }
+  .wisp-3 {
+    stroke-width: 14;
+  }
+
+  :global(html.motion) .wisp {
+    opacity: 0;
+    animation: steam-drift 5.5s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+  :global(html.motion) .wisp-2 {
+    animation-delay: -1.8s;
+    animation-duration: 6.2s;
+  }
+  :global(html.motion) .wisp-3 {
+    animation-delay: -3.4s;
+    animation-duration: 5.1s;
+  }
+  @keyframes steam-drift {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 30px, 0) scale(0.92, 0.85);
+    }
+    30% {
+      opacity: 0.55;
+    }
+    70% {
+      opacity: 0.3;
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(10px, -50px, 0) scale(1.15, 1.1);
+    }
+  }
+</style>

@@ -1,0 +1,261 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PhotoSlot from '../components/PhotoSlot.astro';
+import { pages, menu, menuPage, whatsappHref, firstPour } from '../content/site';
+---
+
+<BaseLayout title={pages.menu.title} description={pages.menu.description}>
+  <div class="menu-page">
+    <header class="wrap menu-intro">
+      <p class="kicker">Menu · Served from {firstPour}</p>
+      <h1 class="menu-title">{menuPage.title}</h1>
+      <p class="menu-line">{menuPage.line}</p>
+    </header>
+
+    <div class="wrap menu-layout">
+      <nav class="board-nav" aria-label="Menu sections">
+        <div class="board-nav-inner">
+          <p class="chalk board-nav-title">On the board</p>
+          <ul>
+            {
+              menu.map((c, i) => (
+                <li>
+                  <a href={`#${c.id}`} class="chalk">
+                    <span class="n">{i + 1}.</span> {c.title}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </nav>
+
+      <div class="menu-sections">
+        {
+          menu.map((cat, i) => (
+            <section id={cat.id} class:list={['cat', i % 2 ? 'cat-alt' : '']} aria-labelledby={`${cat.id}-title`}>
+              <div class="cat-head" data-reveal>
+                <PhotoSlot label={cat.photo} ratio="4 / 5" class="cat-photo" tone={i % 2 ? 'foam' : 'kraft'} />
+                <div>
+                  <p class="cat-num">0{i + 1}</p>
+                  <h2 id={`${cat.id}-title`} class="cat-title">
+                    {cat.title}
+                  </h2>
+                  <p class="cat-line">{cat.line}</p>
+                </div>
+              </div>
+              <ul class="items" data-reveal>
+                {cat.items.map((item) => (
+                  <li class="item">
+                    <span class="item-name">
+                      {item.name}
+                      {item.note && <span class="item-note">{item.note}</span>}
+                    </span>
+                    <span class="leader" aria-hidden="true" />
+                    <span class="item-price">{item.price}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        }
+
+        <aside class="menu-cta" data-reveal>
+          <h2 class="cta-title">Want it ready when you arrive?</h2>
+          <p>{menuPage.note}</p>
+          <div class="cta-actions">
+            <a href={whatsappHref()} class="btn btn-leaf" target="_blank" rel="noopener">Order ahead on WhatsApp</a>
+            <a href="/visit" class="btn btn-ghost">Hours & directions</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .menu-page {
+    padding-top: calc(var(--spacing-header) + clamp(2rem, 6vw, 5rem));
+    padding-bottom: var(--spacing-section);
+    background:
+      radial-gradient(70% 40% at 90% 0%, var(--color-gold-200), transparent 70%),
+      var(--color-foam-100);
+  }
+  .menu-intro .kicker {
+    margin: 0 0 1rem;
+    color: var(--color-terra-600);
+  }
+  .menu-title {
+    margin: 0;
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
+  }
+  .menu-line {
+    margin: 1rem 0 0;
+    max-width: 40ch;
+    font-size: var(--text-lead);
+  }
+  .menu-layout {
+    display: grid;
+    gap: 2rem;
+    margin-top: clamp(2rem, 6vw, 4.5rem);
+  }
+
+  .board-nav-inner {
+    padding: 1.2rem 1.3rem;
+    border-radius: 0.6rem;
+    background: var(--color-board);
+    box-shadow:
+      0 0 0 10px var(--color-roast-600),
+      var(--shadow-deep);
+  }
+  .board-nav-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .board-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0.75rem;
+  }
+  .board-nav a {
+    display: flex;
+    align-items: center;
+    min-height: var(--spacing-tap);
+    font-size: 1.3rem;
+    line-height: 1.1;
+    text-decoration: none;
+  }
+  .board-nav a:hover {
+    color: var(--color-gold-200);
+  }
+  .n {
+    color: var(--color-gold-300);
+    margin-right: 0.35rem;
+  }
+
+  .cat {
+    padding-block: clamp(2rem, 5vw, 3.5rem);
+    border-bottom: 2px dashed color-mix(in oklab, var(--color-roast-500) 30%, transparent);
+  }
+  .cat-head {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 1rem;
+    align-items: end;
+  }
+  .cat-num {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--color-terra-600);
+  }
+  .cat-title {
+    margin: 0.2rem 0 0;
+    font-size: clamp(1.9rem, 1.2rem + 2.8vw, 3.6rem);
+    line-height: 1;
+  }
+  .cat-line {
+    margin: 0.6rem 0 0;
+    max-width: 34ch;
+  }
+  .items {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.2rem;
+  }
+  .item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding-block: 0.65rem;
+  }
+  .item-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: grid;
+  }
+  .item-note {
+    font-weight: 400;
+    font-size: 0.92rem;
+    opacity: 0.75;
+  }
+  .leader {
+    flex: 1 1 1rem;
+    min-width: 1rem;
+    border-bottom: 2px dotted color-mix(in oklab, var(--color-roast-700) 40%, transparent);
+  }
+  .item-price {
+    flex: none;
+    font-weight: 700;
+    color: var(--color-terra-600);
+  }
+
+  .menu-cta {
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+    border-radius: 1.6rem;
+    background: var(--color-roast-900);
+    color: var(--color-foam-100);
+  }
+  .menu-cta .cta-title {
+    margin: 0;
+    font-size: clamp(1.8rem, 1.2rem + 2vw, 3rem);
+    line-height: 1.05;
+    color: var(--color-foam-50);
+  }
+  .menu-cta p {
+    max-width: 50ch;
+  }
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 900px) {
+    .menu-layout {
+      grid-template-columns: minmax(15rem, 0.8fr) minmax(0, 2.2fr);
+      gap: clamp(3rem, 6vw, 6rem);
+      align-items: start;
+    }
+    .board-nav {
+      position: sticky;
+      top: calc(var(--spacing-header) + 2rem);
+    }
+    .board-nav ul {
+      grid-template-columns: 1fr;
+    }
+    .cat-head :global(.photo-slot) {
+      width: 100%;
+      max-width: 20rem;
+    }
+    .cat-alt .cat-head :global(.photo-slot) {
+      justify-self: end;
+    }
+    .cat-head {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+      gap: 2.5rem;
+    }
+    .cat-alt .cat-head {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    }
+    .cat-alt .cat-head > :first-child {
+      order: 2;
+    }
+    .items {
+      margin-left: auto;
+      max-width: 44rem;
+    }
+    .cat-alt .items {
+      margin-left: 0;
+    }
+  }
+</style>

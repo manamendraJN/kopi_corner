@@ -1,0 +1,216 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HoursSign from '../components/HoursSign.astro';
+import MapSlot from '../components/MapSlot.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { pages, visit, business, whatsappHref } from '../content/site';
+---
+
+<BaseLayout title={pages.visit.title} description={pages.visit.description}>
+  <div class="visit">
+    <header class="wrap visit-head">
+      <div class="visit-words">
+        <p class="kicker">Visit · {business.city}</p>
+        <h1 class="visit-title">{visit.title}</h1>
+        <p class="visit-line">{visit.line}</p>
+        <div class="visit-actions">
+          <a href={business.directionsUrl} class="btn btn-roast" target="_blank" rel="noopener">Get directions</a>
+          <a href="#contact" class="btn btn-ghost">Contact us</a>
+        </div>
+      </div>
+      <HoursSign class="visit-sign" />
+    </header>
+
+    <section class="wrap where" aria-labelledby="where-title">
+      <MapSlot class="where-map" />
+      <div class="where-text" data-reveal>
+        <h2 id="where-title" class="h2">{visit.gettingHere}</h2>
+        <address>
+          {business.address.map((l) => <span>{l}</span>)}
+        </address>
+        <p>{visit.gettingHereBody}</p>
+        <a href={business.directionsUrl} class="link-arrow" target="_blank" rel="noopener">
+          Open in Google Maps
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 10h13m-5-5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </a>
+      </div>
+    </section>
+
+    <section id="contact" class="contact" aria-labelledby="contact-title">
+      <div class="wrap contact-grid">
+        <div>
+          <h2 id="contact-title" class="h2 contact-title">{visit.contactTitle}</h2>
+          <p class="contact-line">{visit.contactLine}</p>
+          <ul class="direct">
+            <li>
+              <a href={whatsappHref()} target="_blank" rel="noopener" class="direct-link wa">
+                <span class="direct-k">WhatsApp</span>
+                <span class="direct-v">{business.whatsappDisplay}</span>
+              </a>
+            </li>
+            <li>
+              <a href={business.phoneHref} class="direct-link">
+                <span class="direct-k">Phone</span>
+                <span class="direct-v">{business.phoneDisplay}</span>
+              </a>
+            </li>
+            <li>
+              <a href={`mailto:${business.email}`} class="direct-link">
+                <span class="direct-k">Email</span>
+                <span class="direct-v">{business.email}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="form-card">
+          <h3 class="form-title">Send a note</h3>
+          <ContactForm />
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .visit {
+    background:
+      radial-gradient(80% 50% at 100% 0%, var(--color-gold-300), transparent 70%),
+      var(--color-foam-100);
+  }
+  .visit-head {
+    display: grid;
+    gap: 2rem;
+    padding-top: calc(var(--spacing-header) + clamp(2rem, 6vw, 5rem));
+    padding-bottom: clamp(2.5rem, 6vw, 5rem);
+  }
+  .visit-head .kicker {
+    margin: 0 0 1rem;
+    color: var(--color-terra-600);
+  }
+  .visit-title {
+    margin: 0;
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
+    max-width: 9ch;
+  }
+  .visit-line {
+    margin: 1.2rem 0 0;
+    font-size: var(--text-lead);
+    max-width: 38ch;
+  }
+  .visit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .h2 {
+    margin: 0;
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.6rem);
+    line-height: 1;
+  }
+  .where {
+    display: grid;
+    gap: 2rem;
+    padding-bottom: var(--spacing-section);
+  }
+  .where-text address {
+    display: grid;
+    margin: 1rem 0;
+    font-style: normal;
+    font-weight: 600;
+  }
+  .contact {
+    background: var(--color-roast-900);
+    color: var(--color-foam-100);
+    padding-block: var(--spacing-section);
+  }
+  .contact-grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+  .contact-title {
+    color: var(--color-foam-50);
+  }
+  .contact-line {
+    font-size: var(--text-lead);
+    max-width: 34ch;
+  }
+  .direct {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .direct li:first-child {
+    grid-column: 1 / -1;
+  }
+  .direct-link {
+    display: grid;
+    gap: 0.2rem;
+    min-height: 4.5rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--color-foam-50) 8%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foam-50) 18%, transparent);
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+  .direct-link:hover {
+    background: color-mix(in oklab, var(--color-foam-50) 16%, transparent);
+  }
+  .direct-link.wa {
+    background: var(--color-leaf-500);
+    box-shadow: none;
+  }
+  .direct-link.wa:hover {
+    background: var(--color-leaf-700);
+  }
+  .direct-k {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-gold-300);
+  }
+  .wa .direct-k {
+    color: var(--color-foam-50);
+  }
+  .direct-v {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .form-card {
+    padding: clamp(1.4rem, 3vw, 2.4rem);
+    border-radius: 1.6rem;
+    background: var(--color-foam-100);
+    color: var(--color-roast-950);
+  }
+  .form-title {
+    margin: 0 0 1rem;
+    font-size: 1.8rem;
+  }
+
+  @media (min-width: 900px) {
+    .visit-head {
+      grid-template-columns: 1.4fr 1fr;
+      align-items: end;
+    }
+    .visit-head :global(.visit-sign) {
+      justify-self: end;
+      width: 100%;
+    }
+    .where {
+      grid-template-columns: 1.5fr 1fr;
+      align-items: center;
+      column-gap: 4rem;
+    }
+    .contact-grid {
+      grid-template-columns: 1fr 1.1fr;
+      column-gap: 5rem;
+      align-items: start;
+    }
+  }
+</style>

@@ -1,0 +1,376 @@
+---
+/**
+ * "Ask the counter": a small scripted helper. No AI, no server.
+ * Quick-answer buttons + simple keyword matching, all text from src/content/site.ts.
+ * Persists across page changes (transition:persist + sessionStorage).
+ */
+import { chat, whatsappHref } from '../content/site';
+
+const data = {
+  greeting: chat.greeting,
+  fallback: chat.fallback,
+  whatsapp: whatsappHref(),
+  answers: chat.answers.map((a) => ({
+    id: a.id,
+    label: a.label,
+    keywords: a.keywords,
+    text: a.text,
+    link: 'link' in a && a.link ? { label: a.link.label, href: a.link.href === 'whatsapp' ? whatsappHref() : a.link.href } : null,
+  })),
+};
+---
+
+<div class="chat" data-chat transition:persist="chat-helper">
+  <button type="button" class="chat-launch" aria-expanded="false" aria-controls="chat-panel" data-chat-toggle>
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path>
+      <path d="M8.5 9.5h7M8.5 12.5h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+    </svg>
+    <span class="launch-label">{chat.title}</span>
+  </button>
+
+  <div id="chat-panel" class="chat-panel" role="dialog" aria-modal="false" aria-labelledby="chat-title" data-chat-panel hidden>
+    <div class="chat-top">
+      <p id="chat-title" class="chat-title">{chat.title}</p>
+      <span class="chat-sub">Quick answers · not a live chat</span>
+      <button type="button" class="chat-close" aria-label="Close the helper" data-chat-close>
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path d="m4 4 10 10M14 4 4 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+      </button>
+    </div>
+    <div class="chat-log" role="log" aria-live="polite" data-chat-log data-lenis-prevent tabindex="0" aria-label="Conversation"></div>
+    <div class="chat-quick" data-chat-quick aria-label="Quick questions" role="group"></div>
+    <form class="chat-form" data-chat-form>
+      <label for="chat-input" class="sr-only-focusable">{chat.inputLabel}</label>
+      <input id="chat-input" type="text" autocomplete="off" placeholder={chat.placeholder} data-chat-input />
+      <button type="submit" class="chat-send" aria-label="Send question">
+        <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 10h13m-5-5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+    </form>
+  </div>
+  <script type="application/json" data-chat-data set:html={JSON.stringify(data)} />
+</div>
+
+<style>
+  .chat {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    z-index: 55;
+    display: grid;
+    justify-items: end;
+    gap: 0.75rem;
+    pointer-events: none;
+  }
+  .chat > * {
+    pointer-events: auto;
+  }
+  .chat-launch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 3.25rem;
+    padding: 0 1.2rem 0 1rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-roast-800);
+    color: var(--color-foam-50);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-deep);
+    transition: transform 0.3s var(--ease-out-soft), background-color 0.2s;
+  }
+  .chat-launch:hover {
+    transform: translateY(-2px);
+    background: var(--color-roast-900);
+  }
+  @media (max-width: 639px) {
+    .chat-launch {
+      width: 3.25rem;
+      padding: 0;
+      justify-content: center;
+    }
+    .launch-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+  }
+  .chat-panel {
+    order: -1;
+    width: min(22.5rem, calc(100vw - 2rem));
+    max-height: min(34rem, calc(100svh - 7rem));
+    display: flex;
+    flex-direction: column;
+    border-radius: 1.3rem;
+    background: var(--color-foam-50);
+    color: var(--color-roast-950);
+    box-shadow: var(--shadow-deep), 0 0 0 1px var(--color-foam-300);
+    overflow: hidden;
+  }
+  .chat-panel[hidden] {
+    display: none;
+  }
+  .chat-top {
+    position: relative;
+    padding: 1rem 3.5rem 0.8rem 1.1rem;
+    background: var(--color-roast-800);
+    color: var(--color-foam-50);
+  }
+  .chat-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .chat-sub {
+    font-size: 0.78rem;
+    opacity: 0.8;
+  }
+  .chat-close {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    translate: 0 -50%;
+    width: var(--spacing-tap);
+    height: var(--spacing-tap);
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+  .chat-close:hover {
+    background: color-mix(in oklab, var(--color-foam-50) 15%, transparent);
+  }
+  .chat-log {
+    flex: 1;
+    min-height: 8rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .chat-log :global(.msg) {
+    max-width: 88%;
+    padding: 0.6rem 0.85rem;
+    border-radius: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+  .chat-log :global(.msg-bot) {
+    align-self: flex-start;
+    background: var(--color-foam-200);
+    border-bottom-left-radius: 0.3rem;
+  }
+  .chat-log :global(.msg-me) {
+    align-self: flex-end;
+    background: var(--color-roast-800);
+    color: var(--color-foam-50);
+    border-bottom-right-radius: 0.3rem;
+  }
+  .chat-log :global(.msg a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--spacing-tap);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .chat-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    border-top: 1px solid var(--color-foam-200);
+  }
+  .chat-quick :global(button) {
+    min-height: var(--spacing-tap);
+    padding: 0 0.85rem;
+    border: 1.5px solid var(--color-roast-700);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-roast-900);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .chat-quick :global(button:hover) {
+    background: var(--color-gold-200);
+  }
+  .chat-form {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem 0.75rem;
+    border-top: 1px solid var(--color-foam-200);
+  }
+  .chat-form input {
+    flex: 1;
+    min-width: 0;
+    min-height: var(--spacing-tap);
+    padding: 0 0.85rem;
+    border: 2px solid var(--color-foam-300);
+    border-radius: var(--radius-pill);
+    background: var(--color-white);
+    color: var(--color-roast-950);
+    font: inherit;
+    font-size: 1rem;
+  }
+  .chat-send {
+    width: var(--spacing-tap);
+    height: var(--spacing-tap);
+    flex: none;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-gold-400);
+    color: var(--color-roast-950);
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  type Answer = { id: string; label: string; keywords: string[]; text: string; link: { label: string; href: string } | null };
+  type Data = { greeting: string; fallback: string; whatsapp: string; answers: Answer[] };
+  type Msg = { from: 'bot' | 'me'; text: string; link?: { label: string; href: string } | null; links?: { label: string; href: string }[] };
+
+  const KEY = 'kc-chat-v1';
+  const root = document.querySelector<HTMLElement>('[data-chat]');
+
+  if (root) {
+    const data = JSON.parse(root.querySelector('[data-chat-data]')?.textContent || '{}') as Data;
+    const toggle = root.querySelector<HTMLButtonElement>('[data-chat-toggle]')!;
+    const panel = root.querySelector<HTMLElement>('[data-chat-panel]')!;
+    const closeBtn = root.querySelector<HTMLButtonElement>('[data-chat-close]')!;
+    const log = root.querySelector<HTMLElement>('[data-chat-log]')!;
+    const quick = root.querySelector<HTMLElement>('[data-chat-quick]')!;
+    const form = root.querySelector<HTMLFormElement>('[data-chat-form]')!;
+    const input = root.querySelector<HTMLInputElement>('[data-chat-input]')!;
+
+    const load = (): { open: boolean; messages: Msg[] } => {
+      try {
+        return JSON.parse(sessionStorage.getItem(KEY) || '') as { open: boolean; messages: Msg[] };
+      } catch {
+        return { open: false, messages: [] };
+      }
+    };
+    const state = load();
+    const save = () => {
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify(state));
+      } catch {
+        /* storage unavailable: the chat still works for this page */
+      }
+    };
+
+    const renderMsg = (m: Msg) => {
+      const el = document.createElement('div');
+      el.className = `msg msg-${m.from}`;
+      const p = document.createElement('p');
+      p.style.margin = '0';
+      p.textContent = m.text;
+      el.append(p);
+      const links = m.links ?? (m.link ? [m.link] : []);
+      links.forEach((l) => {
+        const a = document.createElement('a');
+        a.href = l.href;
+        a.textContent = l.label;
+        if (l.href.startsWith('http')) {
+          a.target = '_blank';
+          a.rel = 'noopener';
+        }
+        el.append(a, document.createTextNode(' '));
+      });
+      log.append(el);
+      log.scrollTop = log.scrollHeight;
+    };
+    const add = (m: Msg) => {
+      state.messages.push(m);
+      state.messages = state.messages.slice(-40);
+      save();
+      renderMsg(m);
+    };
+
+    // Rebuild the conversation (after a full reload)
+    if (!state.messages.length) state.messages = [{ from: 'bot', text: data.greeting }];
+    state.messages.forEach(renderMsg);
+
+    data.answers.forEach((a) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = a.label;
+      b.addEventListener('click', () => {
+        add({ from: 'me', text: a.label });
+        add({ from: 'bot', text: a.text, link: a.link });
+      });
+      quick.append(b);
+    });
+
+    const match = (q: string): Answer | null => {
+      const text = q.toLowerCase();
+      let best: Answer | null = null;
+      let score = 0;
+      data.answers.forEach((a) => {
+        const s = a.keywords.reduce((n, k) => n + (text.includes(k) ? k.length : 0), 0);
+        if (s > score) {
+          score = s;
+          best = a;
+        }
+      });
+      return best;
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+      input.value = '';
+      add({ from: 'me', text: q });
+      const a = match(q);
+      if (a) add({ from: 'bot', text: a.text, link: a.link });
+      else
+        add({
+          from: 'bot',
+          text: data.fallback,
+          links: [
+            { label: 'Message on WhatsApp', href: data.whatsapp },
+            { label: 'Use the contact form', href: '/visit#contact' },
+          ],
+        });
+    });
+
+    const isPhone = () => window.matchMedia('(max-width: 639px)').matches;
+    const setOpen = (open: boolean, focus = true) => {
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      state.open = open;
+      save();
+      if (open) {
+        log.scrollTop = log.scrollHeight;
+        if (focus) input.focus({ preventScroll: true });
+      } else if (focus) {
+        toggle.focus();
+      }
+    };
+
+    toggle.addEventListener('click', () => setOpen(Boolean(panel.hidden)));
+    closeBtn.addEventListener('click', () => setOpen(false));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !panel.hidden) setOpen(false);
+    });
+    // On phones, close the panel when a link inside it takes you to another page.
+    log.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a') && isPhone()) setOpen(false, false);
+    });
+
+    if (state.open && !isPhone()) setOpen(true, false);
+  }
+</script>

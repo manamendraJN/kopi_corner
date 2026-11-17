@@ -1,0 +1,344 @@
+---
+/**
+ * SCENE 3 — The proof: what makes the cup good.
+ * Three stacking cards, each made from a material of the cafe itself:
+ * a kraft bean-bag label, a sheet of baking parchment, the regulars' order notebook.
+ * The covered card sinks, shrinks a little and darkens as the next one rises over it.
+ */
+import PhotoSlot from './PhotoSlot.astro';
+import { proof, whatsappHref } from '../content/site';
+
+const materials = ['kraft', 'parchment', 'notebook'] as const;
+---
+
+<section class="proof" id="proof" aria-labelledby="proof-title" data-scene="proof">
+  <svg class="rim" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path d="M0 80V40C260 12 520 0 720 0s460 12 720 40v40Z" style="fill:var(--color-foam-100)"></path>
+  </svg>
+
+  <div class="wrap">
+    <header class="proof-head">
+      <p class="kicker">Why it’s good</p>
+      <h2 id="proof-title" class="proof-title">{proof.title}</h2>
+      <p class="proof-intro">{proof.intro}</p>
+    </header>
+
+    <ol class="stack" data-stack>
+      {
+        proof.items.map((item, i) => (
+          <li class:list={['card', `card-${materials[i]}`]} data-card style={`--i:${i}`}>
+            <article class="card-inner" aria-labelledby={`proof-${item.id}`}>
+              <div class="card-photo">
+                <PhotoSlot label={item.photo} ratio="4 / 5" tone={i === 0 ? 'kraft' : 'foam'} />
+              </div>
+              <div class="card-text">
+                <p class="stamp">{item.stamp}</p>
+                <p class="kicker card-kicker">
+                  <span class="num">0{i + 1}</span> {item.kicker}
+                </p>
+                <h3 id={`proof-${item.id}`} class="card-title">
+                  {item.title}
+                </h3>
+                <p class="card-body">{item.body}</p>
+                <figure class="note">
+                  <span class="placeholder-tag">Sample</span>
+                  <blockquote>“{item.note.text}”</blockquote>
+                  <figcaption>— {item.note.who}, a regular (sample note)</figcaption>
+                </figure>
+              </div>
+            </article>
+            <div class="card-shade" data-card-shade aria-hidden="true" />
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="proof-cta">
+      <div>
+        <h2 class="cta-title">{proof.ctaTitle}</h2>
+        <p class="cta-line">{proof.ctaLine}</p>
+      </div>
+      <div class="cta-actions">
+        <a href="/visit" class="btn btn-roast">Find us</a>
+        <a href={whatsappHref()} class="btn btn-leaf" target="_blank" rel="noopener">Order ahead on WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .proof {
+    position: relative;
+    z-index: 2;
+    background: var(--color-foam-100);
+    padding-block: 2rem var(--spacing-section);
+  }
+  :global(html.motion) .proof {
+    margin-top: -100svh;
+  }
+  .rim {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% - 1px);
+    width: 100%;
+    height: clamp(28px, 5vw, 80px);
+    display: block;
+  }
+  .proof-head {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: clamp(2rem, 5vw, 4rem);
+  }
+  .proof-head .kicker {
+    margin: 0;
+    color: var(--color-terra-600);
+  }
+  .proof-title {
+    margin: 0;
+    font-size: var(--text-title);
+    line-height: var(--text-title--line-height);
+    max-width: 14ch;
+  }
+  .proof-intro {
+    margin: 0;
+    font-size: var(--text-lead);
+    max-width: 34ch;
+  }
+  @media (min-width: 900px) {
+    .proof-head {
+      grid-template-columns: 1.3fr 1fr;
+      align-items: end;
+      column-gap: 4rem;
+    }
+    .proof-head .kicker {
+      grid-column: 1 / -1;
+    }
+    .proof-intro {
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  /* ---------- the stack ---------- */
+  .stack {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+  .card {
+    position: relative;
+    border-radius: 1.6rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-deep);
+    transform-origin: 50% 0%;
+  }
+  :global(html.motion) .card {
+    position: sticky;
+    top: calc(var(--spacing-header) + 0.75rem + var(--i) * 0.9rem);
+  }
+  @media (max-height: 560px) {
+    :global(html.motion) .card {
+      position: relative;
+      top: auto;
+    }
+  }
+  .card-shade {
+    position: absolute;
+    inset: 0;
+    background: var(--color-roast-950);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .card-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 1rem 1.1rem;
+    padding: 1.1rem;
+  }
+  .card-photo {
+    grid-row: span 1;
+  }
+  .card-text {
+    display: contents;
+  }
+  .stamp {
+    display: none;
+  }
+  .card-kicker {
+    margin: 0 0 0.4rem;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    margin-top: 0.3rem;
+  }
+  .num {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    margin-right: 0.35rem;
+  }
+  .card-title {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+    margin: 0;
+    font-size: clamp(1.5rem, 1rem + 2.2vw, 3rem);
+    line-height: 1.02;
+  }
+  .card-body {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 1rem;
+  }
+  .note {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 0.9rem 1rem;
+    border-radius: 0.9rem;
+    background: color-mix(in oklab, var(--color-foam-50) 70%, transparent);
+  }
+  .note blockquote {
+    margin: 0.5rem 0 0.25rem;
+    font-family: var(--font-chalk);
+    font-size: 1.35rem;
+    line-height: 1.2;
+  }
+  .note figcaption {
+    font-size: 0.8rem;
+    opacity: 0.75;
+  }
+
+  @media (min-width: 900px) {
+    .card-inner {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 3rem;
+      padding: clamp(1.5rem, 3vw, 3rem);
+      min-height: min(70svh, 40rem);
+      align-items: center;
+    }
+    .card-photo {
+      max-height: calc(70svh - 6rem);
+      aspect-ratio: 4 / 5;
+      justify-self: start;
+      width: 100%;
+    }
+    .card-photo :global(.photo-slot) {
+      height: 100%;
+      width: auto;
+      max-width: 100%;
+    }
+    .card-text {
+      display: grid;
+      gap: 1rem;
+      align-content: center;
+    }
+    .card-kicker,
+    .card-title,
+    .card-body,
+    .note {
+      grid-column: auto;
+      grid-row: auto;
+    }
+    .card-kicker {
+      margin: 0;
+    }
+    .card-body {
+      font-size: 1.1rem;
+      max-width: 40ch;
+    }
+    .stamp {
+      display: inline-block;
+      justify-self: start;
+      margin: 0 0 0.5rem;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border: 2px solid currentColor;
+      border-radius: 0.3rem;
+      transform: rotate(-2deg);
+      opacity: 0.8;
+    }
+    .note {
+      max-width: 34rem;
+    }
+  }
+
+  /* ---------- materials ---------- */
+  .card-kraft {
+    background:
+      radial-gradient(140% 90% at 15% 0%, var(--color-crema-300), transparent 60%),
+      var(--color-crema-400);
+    color: var(--color-roast-950);
+  }
+  .card-kraft .card-inner {
+    background-image: repeating-linear-gradient(
+      100deg,
+      transparent 0 3px,
+      color-mix(in oklab, var(--color-roast-700) 6%, transparent) 3px 4px
+    );
+  }
+  .card-parchment {
+    background:
+      radial-gradient(30% 22% at 80% 20%, color-mix(in oklab, var(--color-gold-300) 30%, transparent), transparent),
+      radial-gradient(26% 20% at 18% 82%, color-mix(in oklab, var(--color-crema-300) 25%, transparent), transparent),
+      var(--color-foam-50);
+    color: var(--color-roast-900);
+  }
+  .card-parchment .stamp {
+    color: var(--color-terra-600);
+  }
+  .card-notebook {
+    background:
+      linear-gradient(to right, transparent 2.4rem, color-mix(in oklab, var(--color-terra-500) 55%, transparent) 2.4rem 2.55rem, transparent 2.55rem),
+      repeating-linear-gradient(to bottom, transparent 0 1.95rem, color-mix(in oklab, var(--color-dawn-500) 28%, transparent) 1.95rem 2rem),
+      var(--color-foam-50);
+    color: var(--color-roast-900);
+  }
+  .card-notebook .card-inner {
+    padding-left: 3.2rem;
+  }
+  @media (min-width: 900px) {
+    .card-notebook .card-inner {
+      padding-left: 4.5rem;
+    }
+  }
+  .card-notebook .stamp {
+    color: var(--color-leaf-700);
+  }
+
+  /* ---------- CTA after the proof ---------- */
+  .proof-cta {
+    margin-top: clamp(3rem, 8vw, 6rem);
+    display: grid;
+    gap: 1.5rem;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-radius: 1.6rem;
+    background: var(--color-gold-300);
+    color: var(--color-roast-950);
+    position: relative;
+    z-index: 1;
+  }
+  .cta-title {
+    margin: 0;
+    font-size: clamp(2rem, 1.3rem + 3vw, 3.8rem);
+    line-height: 1;
+  }
+  .cta-line {
+    margin: 0.6rem 0 0;
+    font-size: var(--text-lead);
+  }
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  @media (min-width: 900px) {
+    .proof-cta {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }
+  }
+</style>

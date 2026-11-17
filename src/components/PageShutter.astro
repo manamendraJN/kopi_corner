@@ -1,0 +1,52 @@
+---
+import Logo from './Logo.astro';
+---
+
+<div class="page-shutter" data-page-shutter transition:persist="page-shutter" aria-hidden="true">
+  <div class="slats"></div>
+  <div class="badge"><Logo variant="dark" size={44} /></div>
+</div>
+
+<style>
+  .page-shutter {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateY(-100%);
+  }
+  .slats {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        var(--color-leaf-400) 0 3px,
+        var(--color-leaf-500) 3px 22px,
+        var(--color-leaf-700) 22px 26px
+      );
+  }
+  .slats::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2.2rem;
+    background: var(--color-leaf-700);
+    box-shadow: 0 -3px 0 var(--color-roast-900) inset;
+  }
+  .badge {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    padding: 1rem 1.4rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-roast-900);
+  }
+  .badge :global(.logo-word) {
+    color: var(--color-foam-50);
+    font-size: 1.5rem;
+  }
+</style>

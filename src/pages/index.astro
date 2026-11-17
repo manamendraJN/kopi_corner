@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroScene from '../components/HeroScene.astro';
+import ProofScene from '../components/ProofScene.astro';
+import OfferScene from '../components/OfferScene.astro';
+import EaseScene from '../components/EaseScene.astro';
+import InvitationScene from '../components/InvitationScene.astro';
+import { pages } from '../content/site';
+---
+
+<BaseLayout title={pages.home.title} description={pages.home.description} darkTop>
+  <HeroScene />
+  <ProofScene />
+  <OfferScene />
+  <EaseScene />
+  <InvitationScene />
+</BaseLayout>

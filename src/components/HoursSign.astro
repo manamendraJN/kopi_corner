@@ -1,0 +1,93 @@
+---
+/** The door sign: opening hours, hung on a string. */
+import { hours } from '../content/site';
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+---
+
+<div class:list={['hours-sign', className]}>
+  <span class="string" aria-hidden="true"></span>
+  <div class="sign-board">
+    <h3 class="sign-title chalk">We’re open</h3>
+    <dl>
+      {
+        hours.map((h) => (
+          <div class="row">
+            <dt>{h.days}</dt>
+            <dd>{h.time}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</div>
+
+<style>
+  .hours-sign {
+    position: relative;
+    padding-top: 2.6rem;
+    max-width: 24rem;
+  }
+  .string {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 60%;
+    height: 2.8rem;
+    translate: -50% 0;
+    background:
+      linear-gradient(to bottom right, transparent calc(50% - 1px), var(--color-roast-700) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) left / 50% 100% no-repeat,
+      linear-gradient(to bottom left, transparent calc(50% - 1px), var(--color-roast-700) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) right / 50% 100% no-repeat;
+  }
+  .string::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -0.35rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: var(--color-roast-800);
+  }
+  .sign-board {
+    position: relative;
+    padding: 1.2rem 1.4rem 1.3rem;
+    border-radius: 0.9rem;
+    background: var(--color-leaf-700);
+    color: var(--color-foam-50);
+    box-shadow: var(--shadow-deep), inset 0 0 0 3px color-mix(in oklab, var(--color-leaf-400) 40%, transparent);
+    transform: rotate(-1.5deg);
+  }
+  .sign-title {
+    margin: 0 0 0.5rem;
+    font-size: 2.3rem;
+    line-height: 1;
+    letter-spacing: 0;
+    font-weight: 700;
+  }
+  dl {
+    margin: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px dashed color-mix(in oklab, var(--color-foam-50) 30%, transparent);
+  }
+  .row:last-child {
+    border-bottom: 0;
+  }
+  dt {
+    font-weight: 600;
+  }
+  dd {
+    margin: 0;
+  }
+</style>
