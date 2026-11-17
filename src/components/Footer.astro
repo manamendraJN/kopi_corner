@@ -1,0 +1,152 @@
+---
+import Logo from './Logo.astro';
+import { business, hours, nav, studio, whatsappHref } from '../content/site';
+---
+
+<footer class="site-footer">
+  <svg class="rim" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path d="M0 60V22C240 4 480 0 720 0s480 4 720 22v38Z" style="fill:var(--color-roast-950)"></path>
+  </svg>
+  <div class="wrap inner">
+    <div class="sign">
+      <Logo variant="dark" size={40} />
+      <p class="sign-line">Your morning place in {business.city}.</p>
+      <a href={whatsappHref()} class="btn btn-gold" target="_blank" rel="noopener">Order ahead on WhatsApp</a>
+    </div>
+
+    <div class="cols">
+      <div>
+        <h2 class="kicker">Visit</h2>
+        <address>
+          {business.address.map((l) => <span>{l}</span>)}
+        </address>
+        <a class="foot-link" href="/visit#map">Map & directions</a>
+      </div>
+      <div>
+        <h2 class="kicker">Hours</h2>
+        <ul class="hours">
+          {hours.map((h) => <li><span>{h.days}</span> <span>{h.time}</span></li>)}
+        </ul>
+      </div>
+      <div>
+        <h2 class="kicker">Say hello</h2>
+        <ul>
+          <li><a class="foot-link" href={business.phoneHref}>{business.phoneDisplay}</a></li>
+          <li><a class="foot-link" href={`mailto:${business.email}`}>{business.email}</a></li>
+          <li><a class="foot-link" href="/visit#contact">Contact form</a></li>
+        </ul>
+      </div>
+      <nav aria-label="Footer">
+        <h2 class="kicker">Pages</h2>
+        <ul>
+          <li><a class="foot-link" href="/">Home</a></li>
+          {nav.map((n) => <li><a class="foot-link" href={n.href}>{n.label}</a></li>)}
+        </ul>
+      </nav>
+    </div>
+
+    <p class="studio">
+      {studio.note} <a href={studio.url} target="_blank" rel="noopener">{studio.name}</a>. {studio.noteEnd}
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    z-index: 6;
+    background: var(--color-roast-950);
+    color: var(--color-foam-200);
+    padding-block: 3.5rem 2rem;
+    margin-top: -1px;
+  }
+  .rim {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% - 1px);
+    width: 100%;
+    height: clamp(24px, 4vw, 60px);
+    display: block;
+  }
+  .inner {
+    display: grid;
+    gap: 3rem;
+  }
+  .sign {
+    display: grid;
+    justify-items: start;
+    gap: 1rem;
+  }
+  .sign :global(.logo-word) {
+    color: var(--color-foam-50);
+    font-size: 1.6rem;
+  }
+  .sign-line {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.4rem);
+    line-height: 1.1;
+    color: var(--color-foam-50);
+    max-width: 18ch;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1.5rem;
+  }
+  .cols h2 {
+    margin: 0 0 0.6rem;
+    color: var(--color-gold-300);
+    font-family: var(--font-body);
+    letter-spacing: 0.16em;
+  }
+  .cols ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  address {
+    font-style: normal;
+    display: grid;
+  }
+  .hours li {
+    display: grid;
+    margin-bottom: 0.4rem;
+  }
+  .foot-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--spacing-tap);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--color-foam-200) 35%, transparent);
+    text-underline-offset: 0.25em;
+    overflow-wrap: anywhere;
+  }
+  .foot-link:hover {
+    color: var(--color-gold-300);
+  }
+  .studio {
+    margin: 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid color-mix(in oklab, var(--color-foam-200) 15%, transparent);
+    font-size: 0.85rem;
+    color: color-mix(in oklab, var(--color-foam-200) 70%, transparent);
+  }
+  .studio a {
+    color: var(--color-foam-100);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  @media (min-width: 900px) {
+    .inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+      align-items: start;
+    }
+    .cols {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .studio {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

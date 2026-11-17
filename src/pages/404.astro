@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { pages } from '../content/site';
+---
+
+<BaseLayout title={pages.notFound.title} description={pages.notFound.description}>
+  <section class="nf wrap">
+    <p class="kicker">404</p>
+    <h1 class="nf-title">The shutter’s down on this page.</h1>
+    <p class="nf-line">But the cafe is open. Let’s get you back to your morning.</p>
+    <div class="nf-actions">
+      <a href="/" class="btn btn-roast">Back to the start</a>
+      <a href="/menu" class="btn btn-ghost">See the menu</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    min-height: 80svh;
+    display: grid;
+    align-content: center;
+    padding-top: calc(var(--spacing-header) + 3rem);
+    padding-bottom: 4rem;
+  }
+  .kicker {
+    margin: 0 0 1rem;
+    color: var(--color-terra-600);
+  }
+  .nf-title {
+    margin: 0;
+    font-size: var(--text-title);
+    line-height: 1;
+    max-width: 16ch;
+  }
+  .nf-line {
+    font-size: var(--text-lead);
+  }
+  .nf-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+</style>

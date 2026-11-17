@@ -1,0 +1,860 @@
+---
+/**
+ * SCENES 1 + 2 — The hook and the turn.
+ * A sleepy blue street at dawn; as you scroll, the sun rises, the shutter rolls up,
+ * the window glows and the big cup fills. Depth layers (back to front):
+ *   sky → sun → far rooftops → street tree → cafe front → pavement → counter + jars → cup → beans + steam
+ */
+import Cup from './Cup.astro';
+import { hero, whatsappHref } from '../content/site';
+
+/* Distant rooftops, generated once at build time (deterministic). */
+function rooftops(seed: number, base: number, minH: number, maxH: number) {
+  let s = seed;
+  const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  let x = -40;
+  let d = '';
+  while (x < 2440) {
+    const w = Math.round(80 + r() * 160);
+    const h = Math.round(minH + r() * (maxH - minH));
+    const top = base - h;
+    const t = r();
+    if (t < 0.38) {
+      const rh = Math.round(26 + r() * 34);
+      d += `M${x} ${base}V${top}L${x + Math.round(w * 0.22)} ${top - rh}H${x + Math.round(w * 0.78)}L${x + w} ${top}V${base}Z`;
+    } else if (t < 0.72) {
+      d += `M${x} ${base}V${top}H${x + w}V${base}Z`;
+      if (r() < 0.55) {
+        const tx = x + Math.round(w * (0.2 + r() * 0.45));
+        d += `M${tx} ${top + 1}V${top - 26}H${tx + 30}V${top + 1}Z`;
+      }
+    } else {
+      const rh = Math.round(36 + r() * 28);
+      d += `M${x} ${base}V${top}L${x + Math.round(w / 2)} ${top - rh}L${x + w} ${top}V${base}Z`;
+    }
+    x += w + Math.round(r() * 14) - 4;
+  }
+  return d;
+}
+const backRow = rooftops(11, 520, 210, 360);
+
+/* Street tree canopy: many overlapping leaf clusters, lit by a low morning sun (top-left). */
+function canopy(seed: number) {
+  let s = seed;
+  const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const out: { cx: number; cy: number; rx: number; ry: number; tone: 'dark' | 'mid' | 'light' }[] = [];
+  for (let i = 0; i < 150; i++) {
+    const x = 34 + r() * 252;
+    const dx = (x - 160) / 134;
+    const top = 152 - 84 * Math.sqrt(Math.max(0, 1 - dx * dx)) + r() * 10;
+    const y = top + 10 + r() * Math.max(8, 194 - top - 10);
+    const rx = Math.round(8 + r() * 13);
+    const ry = Math.round(rx * (0.55 + r() * 0.25));
+    const depth = (y - top) / Math.max(1, 200 - top);
+    const tone: 'dark' | 'mid' | 'light' = depth > 0.62 ? 'dark' : depth < 0.3 && x < 215 ? 'light' : 'mid';
+    out.push({ cx: Math.round(x), cy: Math.round(y), rx, ry, tone });
+  }
+  const order = { dark: 0, mid: 1, light: 2 };
+  return out.sort((a, b) => order[a.tone] - order[b.tone]);
+}
+const leaves = canopy(5);
+const canopyMass = 'M44 186c-14-30 4-62 34-70 12-30 46-44 76-36 26-22 66-16 84 8 34 2 56 34 46 64 12 22-8 44-30 40-26 14-60 10-80 2-30 10-70 10-92 0-22 6-36 2-38-8Z';
+const trunk =
+  'M154 416c3-48 4-104-2-150-14-22-38-44-64-60l7-8c24 13 44 30 56 48 1-30 8-58 24-84l9 4c-13 28-19 56-20 86 15-24 38-42 66-52l4 8c-30 13-53 35-62 64-2 50 1 100 7 144Z';
+const frontRow = rooftops(29, 520, 120, 250);
+
+const beans = [
+  { cls: 'bean-1', rot: -24 },
+  { cls: 'bean-2', rot: 38 },
+  { cls: 'bean-3', rot: 112 },
+  { cls: 'bean-4', rot: -70 },
+];
+---
+
+<section class="hero" aria-labelledby="hero-title" data-scene="hero">
+  <div class="hero-track" data-hero-track>
+    <div class="stage" data-hero-stage>
+      <div class="stage-inner" data-hero-inner>
+        <!-- BACKGROUND: dawn sky warming to gold -->
+        <div class="sky" aria-hidden="true">
+          <div class="sky-dawn"></div>
+          <div class="sky-rise" data-sky-rise></div>
+          <div class="sky-day" data-sky-day></div>
+        </div>
+        <div class="sun-wrap" aria-hidden="true" data-sun><div class="sun"></div></div>
+
+        <div class="scene" aria-hidden="true">
+          <!-- FAR: rooftops of the street -->
+          <div class="layer far" data-cam="far">
+            <div class="mp" data-depth="5">
+              <svg viewBox="0 0 2400 520" preserveAspectRatio="xMidYMax slice" focusable="false">
+                <path d={backRow} class="roofs-back"></path>
+                <path d={frontRow} class="roofs-front"></path>
+                <g data-dawn>
+                  <path d={backRow} class="roofs-back-dawn"></path>
+                  <path d={frontRow} class="roofs-front-dawn"></path>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- PAVEMENT -->
+          <div class="layer ground" data-cam="ground">
+            <div class="ground-day"></div>
+            <div class="ground-dawn" data-dawn></div>
+          </div>
+
+          <!-- FAR-MID: a street tree, standing clear of the buildings -->
+          <div class="layer tree" data-cam="tree">
+            <div class="mp" data-depth="9">
+              <svg viewBox="0 0 320 420" focusable="false">
+                <ellipse cx="160" cy="414" rx="84" ry="8" style="fill:var(--color-roast-900);opacity:.22"></ellipse>
+                <path d={trunk} style="fill:var(--color-roast-700)"></path>
+                <path d="M158 300c-2 40 0 80 2 114" fill="none" style="stroke:var(--color-roast-900);opacity:.35" stroke-width="5"></path>
+                <g>
+                  <path d={canopyMass} class="leaf-dark"></path>
+                  {leaves.map((l) => <ellipse cx={l.cx} cy={l.cy} rx={l.rx} ry={l.ry} class={`leaf leaf-${l.tone}`} />)}
+                </g>
+                <g class="dawn-tint" data-dawn>
+                  <path d={trunk}></path>
+                  <path d={canopyMass}></path>
+                  {leaves.map((l) => <ellipse cx={l.cx} cy={l.cy} rx={l.rx} ry={l.ry} />)}
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- MIDDLE: the cafe front, a corner building -->
+          <div class="layer cafe" data-cam="cafe">
+            <div class="mp" data-depth="14">
+              <svg viewBox="0 0 560 640" focusable="false">
+                <defs>
+                  <linearGradient id="wallFront" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" style="stop-color:var(--color-foam-100)"></stop>
+                    <stop offset="1" style="stop-color:var(--color-foam-300)"></stop>
+                  </linearGradient>
+                  <linearGradient id="roofFront" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" style="stop-color:var(--color-terra-600)"></stop>
+                    <stop offset="1" style="stop-color:var(--color-terra-500)"></stop>
+                  </linearGradient>
+                  <linearGradient id="interior" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" style="stop-color:var(--color-gold-300)"></stop>
+                    <stop offset=".65" style="stop-color:var(--color-gold-400)"></stop>
+                    <stop offset="1" style="stop-color:var(--color-terra-500)"></stop>
+                  </linearGradient>
+                  <radialGradient id="bulb" cx="50%" cy="50%" r="50%">
+                    <stop offset="0" style="stop-color:var(--color-foam-50)"></stop>
+                    <stop offset=".35" style="stop-color:var(--color-gold-200);stop-opacity:.9"></stop>
+                    <stop offset="1" style="stop-color:var(--color-gold-300);stop-opacity:0"></stop>
+                  </radialGradient>
+                  <radialGradient id="spill" cx="50%" cy="50%" r="50%">
+                    <stop offset="0" style="stop-color:var(--color-gold-300);stop-opacity:.75"></stop>
+                    <stop offset="1" style="stop-color:var(--color-gold-300);stop-opacity:0"></stop>
+                  </radialGradient>
+                  <pattern id="slats" width="12" height="11" patternUnits="userSpaceOnUse">
+                    <rect width="12" height="11" style="fill:var(--color-leaf-500)"></rect>
+                    <rect y="0" width="12" height="2" style="fill:var(--color-leaf-400)"></rect>
+                    <rect y="8.5" width="12" height="2.5" style="fill:var(--color-leaf-700)"></rect>
+                  </pattern>
+                  <pattern id="louvre" width="8" height="8" patternUnits="userSpaceOnUse">
+                    <rect width="8" height="8" style="fill:var(--color-leaf-500)"></rect>
+                    <rect y="5.5" width="8" height="2.5" style="fill:var(--color-leaf-700)"></rect>
+                  </pattern>
+                  <filter id="softShadow" x="-10%" y="-200%" width="120%" height="500%"><feGaussianBlur stdDeviation="6"></feGaussianBlur></filter>
+                  <clipPath id="shopOpening"><rect x="162" y="416" width="306" height="224"></rect></clipPath>
+                </defs>
+
+                <!-- contact shadow on the pavement -->
+                <ellipse cx="290" cy="642" rx="300" ry="16" style="fill:var(--color-roast-900);opacity:.28" filter="url(#softShadow)"></ellipse>
+                <!-- light spill on the pavement (drawn below the building line) -->
+                <ellipse class="glow" data-glow cx="315" cy="660" rx="250" ry="34" style="fill:url(#spill)"></ellipse>
+
+                <!-- side wall, receding to the left -->
+                <path d="M2 180 92 146V640L2 612Z" style="fill:var(--color-foam-300)"></path>
+                <path d="M2 180 92 146V640L2 612Z" style="fill:var(--color-roast-600);opacity:.42"></path>
+                <path d="M20 262 66 248v92l-46 12Z" style="fill:var(--color-dawn-900)"></path>
+                <path d="M20 262 32 258v92l-12 3ZM54 252l12-4v92l-12 3Z" style="fill:url(#louvre)"></path>
+                <path d="M22 470 66 458v160l-44-12Z" style="fill:var(--color-roast-800)"></path>
+
+                <!-- front wall -->
+                <rect x="92" y="138" width="448" height="502" style="fill:url(#wallFront)"></rect>
+                <rect x="92" y="600" width="448" height="40" style="fill:var(--color-foam-300)"></rect>
+                <rect x="92" y="598" width="448" height="3" style="fill:var(--color-roast-500);opacity:.25"></rect>
+
+                <!-- roof: clay tiles -->
+                <path d="M150 52h330l78 82H72Z" style="fill:url(#roofFront)"></path>
+                <path d="M150 52 72 134-6 172 58 92Z" style="fill:var(--color-terra-600)"></path>
+                <path d="M150 52 72 134-6 172 58 92Z" style="fill:var(--color-roast-900);opacity:.28"></path>
+                <path d="M131 72h368M112 92h406M93 112h444" fill="none" style="stroke:var(--color-terra-600)" stroke-width="3"></path>
+                <path d="M131 74h368M112 94h406M93 114h444" fill="none" style="stroke:var(--color-terra-400);opacity:.6" stroke-width="1.5"></path>
+                <rect x="72" y="132" width="486" height="10" style="fill:var(--color-roast-700)"></rect>
+                <rect x="92" y="142" width="448" height="18" style="fill:var(--color-roast-900);opacity:.16"></rect>
+
+                <!-- upper floor windows with folded-back louvre shutters -->
+                {
+                  [140, 278, 416].map((x) => (
+                    <g>
+                      <rect x={x - 6} y="174" width="92" height="8" style="fill:var(--color-foam-50)" />
+                      <rect x={x} y="182" width="80" height="128" style="fill:var(--color-foam-50)" />
+                      <rect x={x + 7} y="189" width="66" height="114" style="fill:var(--color-dawn-900)" />
+                      <rect x={x + 39} y="189" width="2" height="114" style="fill:var(--color-foam-50)" />
+                      <rect x={x + 7} y="244" width="66" height="2" style="fill:var(--color-foam-50)" />
+                      <rect x={x - 22} y="182" width="18" height="128" style="fill:url(#louvre)" />
+                      <rect x={x + 84} y="182" width="18" height="128" style="fill:url(#louvre)" />
+                      <rect x={x - 8} y="310" width="96" height="7" style="fill:var(--color-foam-50)" />
+                      <rect x={x - 8} y="317" width="96" height="4" style="fill:var(--color-roast-700);opacity:.2" />
+                    </g>
+                  ))
+                }
+
+                <!-- cornice -->
+                <rect x="88" y="334" width="456" height="10" style="fill:var(--color-foam-50)"></rect>
+                <rect x="88" y="344" width="456" height="5" style="fill:var(--color-roast-700);opacity:.18"></rect>
+
+                <!-- sign board -->
+                <rect x="150" y="360" width="330" height="44" rx="3" style="fill:var(--color-roast-800)"></rect>
+                <text x="315" y="390" text-anchor="middle" class="sign-text">KOPI CORNER</text>
+
+                <!-- shopfront opening (dark before the lights come on) -->
+                <rect x="162" y="416" width="306" height="224" style="fill:var(--color-roast-950)"></rect>
+
+                <!-- potted plant by the door -->
+                <path d="M498 640l-6-46h44l-6 46Z" style="fill:var(--color-terra-500)"></path>
+                <rect x="490" y="588" width="48" height="8" rx="2" style="fill:var(--color-terra-600)"></rect>
+                <path d="M514 590c-10-24-26-36-36-38 14 0 28 14 34 30-2-26 4-48 14-58-6 16-8 36-6 58 6-20 18-32 30-34-12 10-20 26-22 42Z" style="fill:var(--color-leaf-500)"></path>
+
+                <!-- DAWN: one tint over the whole building (fades as morning comes) -->
+                <g class="dawn-tint" data-dawn>
+                  <path d="M150 52h330l78 82h-10v506H2V180l-8-8 64-80Z"></path>
+                </g>
+
+                <!-- the lights come on inside -->
+                <g class="glow" data-glow>
+                  <rect x="162" y="416" width="306" height="224" style="fill:url(#interior)"></rect>
+                  <rect x="176" y="452" width="278" height="5" style="fill:var(--color-roast-700);opacity:.7"></rect>
+                  <rect x="176" y="500" width="278" height="5" style="fill:var(--color-roast-700);opacity:.7"></rect>
+                  {
+                    [190, 214, 238, 300, 324, 386, 410, 434].map((x, i) => (
+                      <rect x={x} y={i % 2 ? 470 : 474} width="16" height={i % 2 ? 30 : 26} rx="3" style="fill:var(--color-roast-600);opacity:.55" />
+                    ))
+                  }
+                  <rect x="176" y="566" width="278" height="74" style="fill:var(--color-roast-700)"></rect>
+                  <rect x="170" y="560" width="290" height="8" rx="2" style="fill:var(--color-crema-400)"></rect>
+                  {
+                    [222, 315, 408].map((x) => (
+                      <g>
+                        <rect x={x - 1} y="416" width="2" height="34" style="fill:var(--color-roast-900)" />
+                        <circle cx={x} cy="458" r="34" style="fill:url(#bulb)" />
+                        <path d={`M${x - 13} 458a13 11 0 0 1 26 0Z`} style="fill:var(--color-roast-800)" />
+                      </g>
+                    ))
+                  }
+                  <rect x="292" y="189" width="66" height="114" style="fill:var(--color-gold-300)"></rect>
+                  <rect x="317" y="189" width="2" height="114" style="fill:var(--color-foam-50)"></rect>
+                </g>
+
+                <!-- the shutter (rolls up into its housing) -->
+                <g clip-path="url(#shopOpening)">
+                  <g class="shutter-roll" data-shutter>
+                    <rect x="162" y="416" width="306" height="224" style="fill:url(#slats)"></rect>
+                    <rect x="162" y="626" width="306" height="14" style="fill:var(--color-leaf-700)"></rect>
+                    <rect x="300" y="630" width="30" height="5" rx="2" style="fill:var(--color-foam-200)"></rect>
+                    <rect class="dawn-tint" data-dawn x="162" y="416" width="306" height="224"></rect>
+                  </g>
+                </g>
+                <rect x="150" y="410" width="12" height="230" style="fill:var(--color-foam-50)"></rect>
+                <rect x="468" y="410" width="12" height="230" style="fill:var(--color-foam-50)"></rect>
+                <rect x="156" y="404" width="318" height="14" style="fill:var(--color-roast-700)"></rect>
+                <path class="dawn-tint" data-dawn d="M150 404h324v14h6v222h-12V418H162v222h-12Z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- NEAR: the wooden counter -->
+          <div class="layer counter" data-cam="counter">
+            <div class="mp" data-depth="22">
+              <svg viewBox="0 0 1600 300" preserveAspectRatio="xMidYMin slice" focusable="false">
+                <defs>
+                  <linearGradient id="woodTop" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" style="stop-color:var(--color-crema-500)"></stop>
+                    <stop offset="1" style="stop-color:var(--color-roast-600)"></stop>
+                  </linearGradient>
+                  <linearGradient id="woodFront" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" style="stop-color:var(--color-roast-700)"></stop>
+                    <stop offset="1" style="stop-color:var(--color-roast-950)"></stop>
+                  </linearGradient>
+                </defs>
+                <rect width="1600" height="54" style="fill:url(#woodTop)"></rect>
+                <path d="M0 14C300 10 520 18 820 13s520-6 780 2M0 30c260-4 600 6 900 0s480-2 700 3M0 44c400-3 800 4 1600-1" fill="none" style="stroke:var(--color-roast-700);opacity:.35" stroke-width="2"></path>
+                <rect y="52" width="1600" height="7" style="fill:var(--color-crema-300);opacity:.55"></rect>
+                <rect y="59" width="1600" height="241" style="fill:url(#woodFront)"></rect>
+                <path d="M160 59v241M400 59v241M640 59v241M880 59v241M1120 59v241M1360 59v241" fill="none" style="stroke:var(--color-roast-950);opacity:.5" stroke-width="3"></path>
+                <rect class="dawn-tint" data-dawn width="1600" height="300"></rect>
+              </svg>
+            </div>
+          </div>
+
+          <!-- NEAR: jars of beans on the counter -->
+          <div class="layer jars" data-cam="jars">
+            <div class="mp" data-depth="22">
+              <svg viewBox="0 0 270 300" focusable="false">
+                <defs>
+                  <pattern id="beanFill" width="22" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+                    <rect width="22" height="16" style="fill:var(--color-roast-900)"></rect>
+                    <ellipse cx="7" cy="5" rx="6.5" ry="4.2" style="fill:var(--color-roast-600)"></ellipse>
+                    <ellipse cx="18" cy="12" rx="6.5" ry="4.2" style="fill:var(--color-roast-700)"></ellipse>
+                    <path d="M2 5c3-1 7 1 10 0M13 12c3-1 7 1 10 0" fill="none" style="stroke:var(--color-roast-950)" stroke-width="1.2"></path>
+                  </pattern>
+                </defs>
+                <ellipse cx="135" cy="294" rx="130" ry="7" style="fill:var(--color-roast-950);opacity:.35"></ellipse>
+                <!-- tall jar -->
+                <rect x="14" y="96" width="112" height="196" rx="20" style="fill:url(#beanFill)"></rect>
+                <rect x="10" y="66" width="120" height="226" rx="22" fill="none" style="stroke:var(--color-foam-50);opacity:.55" stroke-width="4"></rect>
+                <rect x="10" y="66" width="120" height="226" rx="22" style="fill:var(--color-foam-50);opacity:.08"></rect>
+                <rect x="24" y="80" width="10" height="190" rx="5" style="fill:var(--color-foam-50);opacity:.35"></rect>
+                <rect x="18" y="42" width="104" height="28" rx="6" style="fill:var(--color-roast-600)"></rect>
+                <rect x="18" y="42" width="104" height="6" rx="3" style="fill:var(--color-crema-400)"></rect>
+                <!-- short jar -->
+                <rect x="152" y="168" width="104" height="124" rx="18" style="fill:url(#beanFill)"></rect>
+                <rect x="148" y="138" width="112" height="154" rx="20" fill="none" style="stroke:var(--color-foam-50);opacity:.55" stroke-width="4"></rect>
+                <rect x="148" y="138" width="112" height="154" rx="20" style="fill:var(--color-foam-50);opacity:.08"></rect>
+                <rect x="161" y="152" width="9" height="124" rx="4.5" style="fill:var(--color-foam-50);opacity:.35"></rect>
+                <rect x="156" y="116" width="96" height="26" rx="6" style="fill:var(--color-gold-500)"></rect>
+                <rect x="156" y="116" width="96" height="6" rx="3" style="fill:var(--color-gold-300)"></rect>
+                <g class="dawn-tint" data-dawn>
+                  <rect x="10" y="42" width="120" height="250" rx="20"></rect>
+                  <rect x="148" y="116" width="112" height="176" rx="20"></rect>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- NEAR: the big cup -->
+          <div class="layer cup-layer" data-cam="cup">
+            <div class="mp" data-depth="26">
+              <div class="cup-holder">
+                <Cup uid="hero" />
+                <svg class="cup-dawn" viewBox="0 0 600 500" focusable="false">
+                  <g class="dawn-tint" data-dawn>
+                    <ellipse cx="300" cy="432" rx="262" ry="56"></ellipse>
+                    <path d="M100 170c0 118 52 220 132 246q68 14 136 0c80-26 132-128 132-246Z"></path>
+                    <ellipse cx="300" cy="170" rx="200" ry="58"></ellipse>
+                    <path d="M492 214c78-14 104 34 92 70-12 40-58 64-128 72" fill="none" stroke-width="28" stroke-linecap="round" class="tint-stroke"></path>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOREGROUND: a few beans, close to the lens -->
+          {
+            beans.map((b) => (
+              <div class:list={['layer bean', b.cls]} data-bean>
+                <div class="mp" data-depth="40">
+                  <svg viewBox="0 0 100 70" style={`transform:rotate(${b.rot}deg)`} focusable="false">
+                    <ellipse cx="50" cy="35" rx="46" ry="31" style="fill:var(--color-roast-800)" />
+                    <ellipse cx="42" cy="26" rx="26" ry="12" style="fill:var(--color-roast-600);opacity:.7" />
+                    <path d="M8 36c14-10 26 8 42 0s28-12 42-2" fill="none" style="stroke:var(--color-roast-950)" stroke-width="5" stroke-linecap="round" />
+                  </svg>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        <!-- THE WORDS: scene 1 (hook) then scene 2 (turn), in reading order -->
+        <div class="hero-copy wrap">
+          <div class="copy-a" data-copy-a>
+            <p class="kicker eyebrow">{hero.eyebrow}</p>
+            <h1 id="hero-title" class="hero-h1">{hero.hook}</h1>
+            <p class="hero-lead">{hero.hookLine}</p>
+          </div>
+          <div class="copy-b" data-copy-b>
+            <h2 class="hero-h2">{hero.turn}</h2>
+            <p class="hero-lead">{hero.turnLine}</p>
+            <div class="hero-actions">
+              <a href="/menu" class="btn btn-roast">See the menu</a>
+              <a href={whatsappHref()} class="btn btn-ghost" target="_blank" rel="noopener">Order ahead</a>
+            </div>
+          </div>
+        </div>
+
+        <p class="scroll-cue" data-scroll-cue aria-hidden="true"><span class="cue-line"></span>{hero.scrollCue}</p>
+        <div class="handover-shade" data-handover aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- layout values per screen shape ---------- */
+  .hero {
+    --horizon: 71%;
+    --far-bottom: 27%;
+    --far-h: 24%;
+    --tree-left: 76%;
+    --tree-w: 38vw;
+    --tree-bottom: 27.5%;
+    --cafe-left: 5%;
+    --cafe-w: 60vw;
+    --cafe-bottom: 26.5%;
+    --counter-top: 81%;
+    --jars-left: -5%;
+    --jars-w: 30vw;
+    --jars-bottom: 9%;
+    --cup-left: 26%;
+    --cup-w: 60vw;
+    --cup-bottom: 1%;
+    position: relative;
+    background: var(--color-dawn-950);
+  }
+  @media (min-width: 640px) {
+    .hero {
+      --cafe-w: 46vw;
+      --cafe-left: 12%;
+      --tree-left: 72%;
+      --tree-w: 28vw;
+      --cup-w: 44vw;
+      --cup-left: 44%;
+      --jars-w: 20vw;
+      --jars-left: 2%;
+    }
+  }
+  @media (min-width: 900px) {
+    .hero {
+      --horizon: 70%;
+      --far-bottom: 28%;
+      --far-h: 32%;
+      --tree-left: 80%;
+      --tree-w: 15vw;
+      --tree-bottom: 29%;
+      --cafe-w: min(50vh, 34vw);
+      --cafe-left: 43%;
+      --cafe-bottom: 28%;
+      --counter-top: 82%;
+      --jars-left: 4%;
+      --jars-w: min(11vw, 22vh);
+      --jars-bottom: 9%;
+      --cup-w: min(25vw, 44vh);
+      --cup-left: auto;
+      --cup-bottom: 1.5%;
+    }
+    .cup-layer {
+      right: 4%;
+    }
+  }
+
+  /* ---------- the stage ---------- */
+  .stage {
+    position: relative;
+    overflow: hidden;
+    color: var(--color-roast-900);
+  }
+  .stage-inner {
+    position: relative;
+    min-height: 100%;
+  }
+  /* sky and shade bleed above the stage so the 'sink back' never shows an edge */
+  .sky,
+  .handover-shade {
+    position: absolute;
+    inset: -14% 0 0 0;
+  }
+  .sky > div {
+    position: absolute;
+    inset: 0;
+  }
+  .sky-rise {
+    background: linear-gradient(
+      to bottom,
+      var(--color-dawn-700) 0%,
+      color-mix(in oklab, var(--color-dawn-500) 55%, var(--color-terra-400)) 38%,
+      var(--color-terra-400) 62%,
+      var(--color-gold-300) 82%
+    );
+  }
+  .sky-dawn {
+    background: linear-gradient(
+      to bottom,
+      var(--color-dawn-950) 0%,
+      var(--color-dawn-900) 22%,
+      var(--color-dawn-700) 48%,
+      var(--color-dawn-500) 66%,
+      color-mix(in oklab, var(--color-dawn-300) 70%, var(--color-terra-400)) 78%
+    );
+  }
+  .sky-day {
+    background: linear-gradient(
+      to bottom,
+      var(--color-gold-200) 0%,
+      color-mix(in oklab, var(--color-gold-200) 70%, var(--color-foam-50)) 40%,
+      var(--color-gold-300) 64%,
+      var(--color-gold-400) 80%
+    );
+  }
+  .sun-wrap {
+    position: absolute;
+    left: 86%;
+    top: 40%;
+    width: clamp(6.5rem, 18vmin, 9.5rem);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+  }
+  .sun {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      var(--color-foam-50) 0 30%,
+      var(--color-gold-200) 34%,
+      color-mix(in oklab, var(--color-gold-300) 50%, transparent) 52%,
+      transparent 70%
+    );
+  }
+  @media (min-width: 900px) {
+    .sun-wrap {
+      left: 87%;
+      top: 20%;
+    }
+  }
+
+  .scene {
+    position: absolute;
+    inset: 0;
+  }
+  .layer {
+    position: absolute;
+  }
+  .mp {
+    width: 100%;
+    height: 100%;
+  }
+  .layer svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .far {
+    left: -8%;
+    right: -8%;
+    bottom: var(--far-bottom);
+    height: var(--far-h);
+    transform-origin: 55% 100%;
+  }
+  /* distance = haze: far roofs take on the colour of the sky behind them */
+  .roofs-back {
+    fill: color-mix(in oklab, var(--color-roast-500) 38%, var(--color-gold-300));
+  }
+  .roofs-front {
+    fill: color-mix(in oklab, var(--color-roast-600) 62%, var(--color-gold-300));
+  }
+  .roofs-back-dawn {
+    fill: color-mix(in oklab, var(--color-dawn-700) 70%, var(--color-dawn-500));
+  }
+  .roofs-front-dawn {
+    fill: color-mix(in oklab, var(--color-dawn-900) 65%, var(--color-dawn-700));
+  }
+
+  .ground {
+    left: -10%;
+    right: -10%;
+    top: var(--horizon);
+    bottom: -10%;
+    transform-origin: 50% 0%;
+  }
+  .ground-day,
+  .ground-dawn {
+    position: absolute;
+    inset: 0;
+  }
+  .ground-day {
+    background:
+      linear-gradient(to bottom, var(--color-roast-500) 0, var(--color-foam-300) 1.2%, var(--color-crema-300) 40%, var(--color-crema-400) 100%);
+  }
+  .ground-dawn {
+    background: linear-gradient(to bottom, var(--color-dawn-900) 0, var(--color-dawn-700) 2%, var(--color-dawn-900) 100%);
+  }
+
+  .tree {
+    left: var(--tree-left);
+    width: var(--tree-w);
+    aspect-ratio: 320 / 420;
+    bottom: var(--tree-bottom);
+    transform-origin: 50% 100%;
+  }
+  .cafe {
+    left: var(--cafe-left);
+    width: var(--cafe-w);
+    aspect-ratio: 560 / 640;
+    bottom: var(--cafe-bottom);
+    transform-origin: 50% 100%;
+  }
+  .sign-text {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 25px;
+    letter-spacing: 5px;
+    fill: var(--color-gold-300);
+  }
+  .counter {
+    left: -6%;
+    right: -6%;
+    top: var(--counter-top);
+    bottom: -12%;
+    transform-origin: 50% 0%;
+  }
+  .jars {
+    left: var(--jars-left);
+    width: var(--jars-w);
+    aspect-ratio: 270 / 300;
+    bottom: var(--jars-bottom);
+    transform-origin: 50% 100%;
+  }
+  .cup-layer {
+    left: var(--cup-left);
+    width: var(--cup-w);
+    bottom: var(--cup-bottom);
+    transform-origin: 50% 100%;
+  }
+  .cup-holder {
+    position: relative;
+  }
+  .cup-dawn {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+  }
+
+  .dawn-tint,
+  .cup-dawn .dawn-tint {
+    fill: var(--color-dawn-700);
+    mix-blend-mode: multiply;
+  }
+  .leaf-dark {
+    fill: var(--color-leaf-700);
+  }
+  .leaf-mid {
+    fill: var(--color-leaf-500);
+  }
+  .leaf-light {
+    fill: color-mix(in oklab, var(--color-leaf-400) 85%, var(--color-gold-300));
+  }
+  .tint-stroke {
+    fill: none !important;
+    stroke: var(--color-dawn-700);
+  }
+
+  .bean {
+    width: clamp(3.5rem, 9vw, 7.5rem);
+    aspect-ratio: 100 / 70;
+    filter: blur(3px);
+  }
+  .bean-1 {
+    left: 2%;
+    bottom: -2%;
+  }
+  .bean-2 {
+    left: 20%;
+    bottom: -4%;
+    width: clamp(2.6rem, 6vw, 5rem);
+    filter: blur(2px);
+  }
+  .bean-3 {
+    right: 30%;
+    bottom: -5%;
+    filter: blur(4px);
+  }
+  .bean-4 {
+    right: -2%;
+    bottom: 12%;
+    width: clamp(2.4rem, 5vw, 4.2rem);
+    filter: blur(2.5px);
+  }
+  @media (max-width: 899px) {
+    .bean-3 {
+      right: 4%;
+      bottom: -3%;
+    }
+    .bean-4 {
+      display: none;
+    }
+  }
+
+  /* ---------- the words ---------- */
+  .hero-copy {
+    position: relative;
+    z-index: 2;
+    padding-top: calc(var(--spacing-header) + 1.5rem);
+  }
+  .eyebrow {
+    margin: 0 0 1rem;
+    opacity: 0.85;
+  }
+  .hero-h1,
+  .hero-h2 {
+    margin: 0;
+    font-size: clamp(2.7rem, 1.1rem + 4.6vw, 5.6rem);
+    line-height: 0.98;
+    font-weight: 540;
+    letter-spacing: -0.03em;
+    max-width: 11ch;
+  }
+  .hero-lead {
+    margin: 1rem 0 0;
+    font-size: var(--text-lead);
+    line-height: 1.45;
+    max-width: 30ch;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .scroll-cue {
+    display: none;
+  }
+
+  /* ===== STILL VERSION (no JS or reduced motion): the cafe awake, both lines readable ===== */
+  :global(html:not(.motion)) .stage-inner {
+    display: flex;
+    flex-direction: column;
+  }
+  :global(html:not(.motion)) .scene {
+    position: relative;
+    order: 2;
+    height: clamp(26rem, 78svh, 52rem);
+  }
+  :global(html:not(.motion)) .hero-copy {
+    order: 1;
+    padding-bottom: 1rem;
+  }
+  :global(html:not(.motion)) .copy-b {
+    margin-top: 2.5rem;
+  }
+  :global(html:not(.motion)) .hero-h2 {
+    font-size: clamp(2rem, 1.2rem + 2.6vw, 3.4rem);
+  }
+  :global(html:not(.motion)) [data-dawn],
+  :global(html:not(.motion)) .handover-shade {
+    opacity: 0;
+  }
+  :global(html:not(.motion)) .shutter-roll {
+    transform: translateY(-224px);
+  }
+  :global(html:not(.motion)) .sky-rise {
+    opacity: 0;
+  }
+  :global(html:not(.motion)) .sun-wrap {
+    top: auto;
+    bottom: calc(clamp(26rem, 78svh, 52rem) * 0.66);
+    translate: -50% 50%;
+  }
+
+  /* ===== MOTION VERSION: a pinned stage, starting at dawn ===== */
+  :global(html.motion) .hero-track {
+    height: 400svh;
+  }
+  :global(html.motion) .stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+  }
+  :global(html.motion) .stage-inner {
+    height: 100%;
+  }
+  :global(html.motion) .hero-copy {
+    display: grid;
+    padding-top: calc(var(--spacing-header) + 2rem);
+  }
+  @media (min-width: 900px) {
+    :global(html.motion) .hero-copy {
+      padding-top: 22svh;
+    }
+  }
+  :global(html.motion) .copy-a,
+  :global(html.motion) .copy-b {
+    grid-area: 1 / 1;
+  }
+  :global(html.motion) .copy-a {
+    color: var(--color-foam-50);
+  }
+  :global(html.motion) .copy-b {
+    opacity: 0;
+    visibility: hidden;
+  }
+  :global(html.motion) .sky-day,
+  :global(html.motion) .sky-rise,
+  :global(html.motion) .glow,
+  :global(html.motion) .handover-shade {
+    opacity: 0;
+  }
+  :global(html.motion [data-hero-stage] [data-cup-steam]),
+  :global(html.motion [data-hero-stage] [data-cup-coffee]),
+  :global(html.motion [data-hero-stage] [data-cup-crema]) {
+    opacity: 0;
+  }
+  :global(html.motion) .sun-wrap {
+    transform: translateY(12vh);
+    opacity: 0;
+  }
+  :global(html.motion) .scroll-cue {
+    position: absolute;
+    left: var(--spacing-gutter);
+    bottom: 2rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    color: var(--color-foam-100);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  @media (max-width: 899px) {
+    :global(html.motion) .scroll-cue {
+      bottom: auto;
+      top: calc(var(--spacing-header) + 0.6rem);
+      left: auto;
+      right: var(--spacing-gutter);
+      font-size: 0.7rem;
+    }
+    :global(html.motion) .scroll-cue .cue-line {
+      display: none;
+    }
+  }
+  .cue-line {
+    display: block;
+    width: 2.5rem;
+    height: 2px;
+    background: currentColor;
+    transform-origin: left;
+    animation: cue 2.4s var(--ease-out-soft) infinite;
+  }
+  @keyframes cue {
+    0% {
+      transform: scaleX(0.2);
+      opacity: 0.4;
+    }
+    50% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scaleX(0.2);
+      opacity: 0.4;
+    }
+  }
+  .handover-shade {
+    background: var(--color-roast-950);
+    z-index: 3;
+    pointer-events: none;
+  }
+</style>

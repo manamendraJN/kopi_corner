@@ -1,0 +1,273 @@
+---
+import Logo from './Logo.astro';
+import { nav, whatsappHref, hours, business } from '../content/site';
+
+interface Props {
+  darkTop?: boolean;
+}
+const current = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<header class="site-header" data-header>
+  <div class="bar">
+    <a href="/" class="pill brand" aria-label="Kopi Corner, home">
+      <Logo size={30} />
+    </a>
+
+    <nav class="pill nav-desktop" aria-label="Main">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={current === item.href ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a href={whatsappHref()} class="btn btn-leaf order" target="_blank" rel="noopener">
+        Order ahead
+      </a>
+    </nav>
+
+    <button
+      type="button"
+      class="pill menu-toggle"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      data-menu-toggle
+    >
+      <span class="bars" aria-hidden="true"><span></span><span></span></span>
+      <span>Menu</span>
+    </button>
+  </div>
+
+  <div id="mobile-menu" class="mobile-menu" data-mobile-menu hidden>
+    <nav aria-label="Main (mobile)">
+      <ul>
+        <li><a href="/" aria-current={current === '/' ? 'page' : undefined}>Home</a></li>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={current === item.href ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="mobile-extra">
+      <a href={whatsappHref()} class="btn btn-leaf" target="_blank" rel="noopener">Order ahead on WhatsApp</a>
+      <p class="kicker">Opening hours</p>
+      <ul class="mobile-hours">
+        {hours.map((h) => <li><span>{h.days}</span><span>{h.time}</span></li>)}
+      </ul>
+      <p class="addr">{business.address.join(', ')}</p>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    pointer-events: none;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem var(--spacing-gutter);
+    height: var(--spacing-header);
+  }
+  .pill {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    min-height: 3rem;
+    background: color-mix(in oklab, var(--color-foam-50) 94%, transparent);
+    color: var(--color-roast-900);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-lift);
+  }
+  .brand {
+    padding: 0.4rem 1.1rem 0.4rem 0.45rem;
+    text-decoration: none;
+  }
+  .nav-desktop {
+    display: none;
+    gap: 0.25rem;
+    padding: 0.3rem 0.3rem 0.3rem 0.6rem;
+  }
+  .nav-desktop ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav-desktop a:not(.btn) {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--spacing-tap);
+    padding: 0 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: var(--radius-pill);
+    transition: background-color 0.2s;
+  }
+  .nav-desktop a:not(.btn):hover {
+    background: var(--color-foam-200);
+  }
+  .nav-desktop a[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.35em;
+    text-decoration-color: var(--color-terra-500);
+  }
+  .order {
+    padding-inline: 1.15rem;
+  }
+  .menu-toggle {
+    gap: 0.6rem;
+    padding: 0 1.15rem;
+    min-height: 3rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .bars {
+    display: grid;
+    gap: 5px;
+    width: 18px;
+  }
+  .bars span {
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform 0.3s var(--ease-out-soft);
+  }
+  .menu-toggle[aria-expanded='true'] .bars span:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+  .menu-toggle[aria-expanded='true'] .bars span:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  .mobile-menu {
+    pointer-events: auto;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: var(--color-roast-900);
+    color: var(--color-foam-100);
+    padding: calc(var(--spacing-header) + 1.5rem) var(--spacing-gutter) 2rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .mobile-menu[hidden] {
+    display: none;
+  }
+  .mobile-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .mobile-menu nav a {
+    display: block;
+    padding: 0.35rem 0;
+    font-family: var(--font-display);
+    font-size: 2.6rem;
+    line-height: 1.1;
+    text-decoration: none;
+  }
+  .mobile-menu nav a[aria-current='page'] {
+    color: var(--color-gold-300);
+  }
+  .mobile-extra {
+    display: grid;
+    gap: 0.9rem;
+    justify-items: start;
+  }
+  .mobile-extra .kicker {
+    margin: 0.6rem 0 0;
+    color: var(--color-gold-300);
+  }
+  .mobile-hours li {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    min-width: 17rem;
+  }
+  .addr {
+    margin: 0;
+    opacity: 0.8;
+  }
+  @media (min-width: 900px) {
+    .nav-desktop {
+      display: flex;
+    }
+    .menu-toggle,
+    .mobile-menu {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  // Mobile menu: open/close, Escape closes, focus returns to the toggle.
+  function setupMenu() {
+    const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+    const panel = document.querySelector<HTMLElement>('[data-mobile-menu]');
+    if (!toggle || !panel) return;
+
+    const close = (returnFocus = true) => {
+      panel.hidden = true;
+      toggle.setAttribute('aria-expanded', 'false');
+      document.documentElement.classList.remove('menu-open');
+      window.dispatchEvent(new CustomEvent('kc:scroll-lock', { detail: false }));
+      if (returnFocus) toggle.focus();
+    };
+    const open = () => {
+      panel.hidden = false;
+      toggle.setAttribute('aria-expanded', 'true');
+      document.documentElement.classList.add('menu-open');
+      window.dispatchEvent(new CustomEvent('kc:scroll-lock', { detail: true }));
+      panel.querySelector<HTMLAnchorElement>('a')?.focus();
+    };
+
+    const ctrl = new AbortController();
+    const { signal } = ctrl;
+    toggle.addEventListener('click', () => (panel.hidden ? open() : close()), { signal });
+    panel.addEventListener(
+      'click',
+      (e) => {
+        if ((e.target as HTMLElement).closest('a')) close(false);
+      },
+      { signal },
+    );
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        if (e.key === 'Escape' && !panel.hidden) close();
+      },
+      { signal },
+    );
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        if (!panel.hidden) close(false);
+        ctrl.abort();
+      },
+      { once: true },
+    );
+  }
+  document.addEventListener('astro:page-load', setupMenu);
+</script>

@@ -1,0 +1,132 @@
+---
+/**
+ * Short contact form, ready for Formspree.
+ * Set business.formspreeEndpoint in src/content/site.ts (e.g. https://formspree.io/f/abcdwxyz).
+ */
+import { business, visit } from '../content/site';
+const f = visit.form;
+const connected = !business.formspreeEndpoint.includes('[');
+---
+
+<form
+  class="contact-form"
+  action={business.formspreeEndpoint}
+  method="POST"
+  data-contact-form
+  data-connected={connected ? 'true' : 'false'}
+  data-msg-sending={f.sending}
+  data-msg-success={f.success}
+  data-msg-error={f.error}
+  data-msg-not-connected={f.notConnected}
+>
+  <input type="hidden" name="_subject" value="New message from the Kopi Corner website" />
+  <div class="field">
+    <label for="cf-name">{f.name}</label>
+    <input id="cf-name" name="name" type="text" autocomplete="name" required />
+  </div>
+  <div class="field">
+    <label for="cf-contact">{f.contact}</label>
+    <input id="cf-contact" name="contact" type="text" autocomplete="email" required />
+  </div>
+  <div class="field">
+    <label for="cf-message">{f.message}</label>
+    <textarea id="cf-message" name="message" rows="5" placeholder={f.messagePlaceholder} required></textarea>
+  </div>
+  <!-- honeypot for bots -->
+  <div class="hp" aria-hidden="true">
+    <label for="cf-gotcha">Leave this empty</label>
+    <input id="cf-gotcha" type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+  </div>
+  <button type="submit" class="btn btn-roast">{f.submit}</button>
+  <p class="status" role="status" aria-live="polite" data-form-status></p>
+</form>
+
+<style>
+  .contact-form {
+    display: grid;
+    gap: 1rem;
+  }
+  .field {
+    display: grid;
+    gap: 0.35rem;
+  }
+  label {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  input,
+  textarea {
+    width: 100%;
+    min-height: var(--spacing-tap);
+    padding: 0.75rem 0.9rem;
+    border: 2px solid var(--color-foam-300);
+    border-radius: 0.8rem;
+    background: var(--color-foam-50);
+    color: var(--color-roast-950);
+    font: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+  }
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid var(--color-gold-400);
+    outline-offset: 1px;
+    border-color: var(--color-roast-700);
+  }
+  textarea {
+    resize: vertical;
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+  }
+  button {
+    justify-self: start;
+    border: 0;
+    cursor: pointer;
+  }
+  .status {
+    margin: 0;
+    min-height: 1.5em;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  function setupForms() {
+    document.querySelectorAll<HTMLFormElement>('[data-contact-form]').forEach((form) => {
+      if (form.dataset.bound) return;
+      form.dataset.bound = 'true';
+      const status = form.querySelector<HTMLElement>('[data-form-status]')!;
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      const label = button.textContent;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (form.dataset.connected !== 'true') {
+          status.textContent = form.dataset.msgNotConnected ?? '';
+          return;
+        }
+        button.disabled = true;
+        button.textContent = form.dataset.msgSending ?? 'Sending…';
+        status.textContent = '';
+        try {
+          const res = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { Accept: 'application/json' },
+          });
+          if (!res.ok) throw new Error(String(res.status));
+          form.reset();
+          status.textContent = form.dataset.msgSuccess ?? '';
+        } catch {
+          status.textContent = form.dataset.msgError ?? '';
+        } finally {
+          button.disabled = false;
+          button.textContent = label;
+        }
+      });
+    });
+  }
+  document.addEventListener('astro:page-load', setupForms);
+</script>
