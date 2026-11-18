@@ -39,6 +39,8 @@ fully readable version of every scene.
 
 ## Deploy to Cloudflare Pages
 
+See [DEPLOY.md](./DEPLOY.md) for step-by-step instructions.
+
 - Build command: `npm run build`
 - Output directory: `dist`
 - Set `site` in `astro.config.mjs` to the real domain first.
