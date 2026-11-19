@@ -15,6 +15,7 @@ import { initEase, initInvitation } from './scenes/arrive';
 import { initMorning } from './scenes/morning';
 import { initReveals } from './scenes/reveal';
 import { initMouseParallax } from './scenes/parallax';
+import { initSteamPause } from './scenes/steam';
 import { setupShutter } from './shutter';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -104,6 +105,7 @@ function start() {
         initMorning(),
         initReveals(),
         initMouseParallax(),
+        initSteamPause(),
       ].filter((fn): fn is () => void => typeof fn === 'function');
     });
   }

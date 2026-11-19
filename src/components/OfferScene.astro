@@ -320,9 +320,12 @@ import { offer, boardLines } from '../content/site';
     opacity: 0;
     overflow: visible;
   }
+  .chalk-wisp {
+    filter: blur(2.5px);
+    will-change: transform, opacity;
+  }
   .chalk-wisp path {
     stroke: var(--color-chalk);
     stroke-width: 12;
-    filter: blur(2.5px);
   }
 </style>

@@ -143,6 +143,13 @@ const materials = ['kraft', 'parchment', 'notebook'] as const;
       top: auto;
     }
   }
+  /* scroll performance: each card is one GPU picture that is scaled, never redrawn */
+  :global(html.motion) .card {
+    will-change: transform;
+  }
+  :global(html.motion) .card-shade {
+    will-change: opacity;
+  }
   .card-shade {
     position: absolute;
     inset: 0;

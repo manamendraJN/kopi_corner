@@ -12,6 +12,17 @@ export function initHero() {
   const q = gsap.utils.selector(root);
   const track = root.querySelector<HTMLElement>('[data-hero-track]')!;
 
+  // Keep the illustration below the words: tell the CSS where the text block ends,
+  // so on short phone screens the cafe sizes itself to the room that is left.
+  const copy = root.querySelector<HTMLElement>('.hero-copy');
+  const setCopyEnd = () => {
+    if (copy) root.style.setProperty('--copy-end', `${copy.offsetTop + copy.offsetHeight}px`);
+  };
+  setCopyEnd();
+  const ro = copy ? new ResizeObserver(setCopyEnd) : null;
+  if (copy) ro?.observe(copy);
+  window.addEventListener('resize', setCopyEnd);
+
   const tl = gsap.timeline({
     defaults: { ease: 'none' },
     scrollTrigger: {
@@ -85,6 +96,8 @@ export function initHero() {
   tl.set({}, {}, 3);
 
   return () => {
+    ro?.disconnect();
+    window.removeEventListener('resize', setCopyEnd);
     tl.scrollTrigger?.kill();
     tl.kill();
   };

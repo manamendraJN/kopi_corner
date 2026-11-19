@@ -1,9 +1,10 @@
 ---
 /**
- * The big cup. Drawn as separate parts so the story can move them:
- *  - .cup-coffee  : the coffee surface (rises as the cup fills)
- *  - .cup-crema   : the crema that forms once it's full
- *  - .cup-steam   : steam wisps above the rim
+ * The big cup. Drawn as separate layers so the story can move them cheaply:
+ *  - .cup-steam   : steam wisps above the rim (each wisp its own element, so the
+ *                   drift animation runs on the GPU without repainting)
+ *  - .cup-svg     : the cup itself (static)
+ *  - .cup-fill    : the coffee surface [data-cup-coffee] and crema [data-cup-crema]
  * `uid` keeps gradient ids unique when the cup appears twice on a page.
  */
 interface Props {
@@ -22,13 +23,13 @@ const wispPaths = [
 
 <div class:list={['cup', className]} data-cup>
   <div class="cup-steam" aria-hidden="true" data-cup-steam>
-    <svg viewBox="0 0 300 420" preserveAspectRatio="xMidYMax meet" focusable="false">
-      {
-        wispPaths.slice(0, steamWisps).map((d, i) => (
-          <path class={`wisp wisp-${i + 1}`} d={d} fill="none" stroke-linecap="round" />
-        ))
-      }
-    </svg>
+    {
+      wispPaths.slice(0, steamWisps).map((d, i) => (
+        <svg class={`wisp wisp-${i + 1}`} viewBox="0 0 300 420" preserveAspectRatio="xMidYMax meet" focusable="false">
+          <path d={d} fill="none" stroke-linecap="round" />
+        </svg>
+      ))
+    }
   </div>
 
   <svg class="cup-svg" viewBox="0 0 600 500" aria-hidden="true" focusable="false">
@@ -36,6 +37,11 @@ const wispPaths = [
       <radialGradient id={id('shadow')} cx="50%" cy="50%" r="50%">
         <stop offset="0" style="stop-color:var(--color-roast-950);stop-opacity:.55"></stop>
         <stop offset="1" style="stop-color:var(--color-roast-950);stop-opacity:0"></stop>
+      </radialGradient>
+      <radialGradient id={id('well')} cx="50%" cy="50%" r="50%">
+        <stop offset="0" style="stop-color:var(--color-roast-900);stop-opacity:.2"></stop>
+        <stop offset=".6" style="stop-color:var(--color-roast-900);stop-opacity:.1"></stop>
+        <stop offset="1" style="stop-color:var(--color-roast-900);stop-opacity:0"></stop>
       </radialGradient>
       <linearGradient id={id('saucer')} x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" style="stop-color:var(--color-foam-50)"></stop>
@@ -57,23 +63,6 @@ const wispPaths = [
         <stop offset=".7" style="stop-color:var(--color-foam-200)"></stop>
         <stop offset="1" style="stop-color:var(--color-foam-100)"></stop>
       </linearGradient>
-      <radialGradient id={id('kopi')} cx="50%" cy="45%" r="55%">
-        <stop offset="0" style="stop-color:var(--color-roast-600)"></stop>
-        <stop offset=".7" style="stop-color:var(--color-roast-800)"></stop>
-        <stop offset="1" style="stop-color:var(--color-roast-950)"></stop>
-      </radialGradient>
-      <radialGradient id={id('crema')} cx="46%" cy="42%" r="56%">
-        <stop offset="0" style="stop-color:var(--color-crema-300)"></stop>
-        <stop offset=".55" style="stop-color:var(--color-crema-400)"></stop>
-        <stop offset=".86" style="stop-color:var(--color-crema-500)"></stop>
-        <stop offset="1" style="stop-color:var(--color-roast-700)"></stop>
-      </radialGradient>
-      <clipPath id={id('mouth')}>
-        <ellipse cx="300" cy="172" rx="187" ry="51"></ellipse>
-      </clipPath>
-      <filter id={id('soft')} x="-20%" y="-50%" width="140%" height="200%">
-        <feGaussianBlur stdDeviation="10"></feGaussianBlur>
-      </filter>
     </defs>
 
     <!-- shadow on the counter -->
@@ -83,7 +72,7 @@ const wispPaths = [
     <ellipse cx="300" cy="432" rx="262" ry="56" style={`fill:url(#${id('saucer')})`}></ellipse>
     <ellipse cx="300" cy="424" rx="250" ry="48" style="fill:var(--color-foam-100)"></ellipse>
     <ellipse cx="300" cy="424" rx="150" ry="27" style="fill:var(--color-foam-200)"></ellipse>
-    <ellipse cx="300" cy="428" rx="118" ry="17" style="fill:var(--color-roast-900);opacity:.18" filter={`url(#${id('soft')})`}></ellipse>
+    <ellipse cx="300" cy="428" rx="140" ry="26" style={`fill:url(#${id('well')})`}></ellipse>
 
     <!-- handle -->
     <path d="M492 214c78-14 104 34 92 70-12 40-58 64-128 72" fill="none" style="stroke:var(--color-foam-300)" stroke-width="28" stroke-linecap="round"></path>
@@ -99,7 +88,26 @@ const wispPaths = [
     <!-- rim and inside -->
     <ellipse cx="300" cy="170" rx="200" ry="58" style="fill:var(--color-foam-50)"></ellipse>
     <ellipse cx="300" cy="172" rx="187" ry="51" style={`fill:url(#${id('inside')})`}></ellipse>
+  </svg>
 
+  <!-- the coffee (its own layer: only this small part repaints while the cup fills) -->
+  <svg class="cup-fill" viewBox="0 0 600 500" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id={id('kopi')} cx="50%" cy="45%" r="55%">
+        <stop offset="0" style="stop-color:var(--color-roast-600)"></stop>
+        <stop offset=".7" style="stop-color:var(--color-roast-800)"></stop>
+        <stop offset="1" style="stop-color:var(--color-roast-950)"></stop>
+      </radialGradient>
+      <radialGradient id={id('crema')} cx="46%" cy="42%" r="56%">
+        <stop offset="0" style="stop-color:var(--color-crema-300)"></stop>
+        <stop offset=".55" style="stop-color:var(--color-crema-400)"></stop>
+        <stop offset=".86" style="stop-color:var(--color-crema-500)"></stop>
+        <stop offset="1" style="stop-color:var(--color-roast-700)"></stop>
+      </radialGradient>
+      <clipPath id={id('mouth')}>
+        <ellipse cx="300" cy="172" rx="187" ry="51"></ellipse>
+      </clipPath>
+    </defs>
     <g clip-path={`url(#${id('mouth')})`}>
       <g class="cup-coffee" data-cup-coffee>
         <ellipse cx="300" cy="176" rx="186" ry="50" style={`fill:url(#${id('kopi')})`}></ellipse>
@@ -127,6 +135,13 @@ const wispPaths = [
     height: auto;
     overflow: visible;
   }
+  .cup-fill {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
   .cup-coffee {
     transform-box: view-box;
     transform-origin: 300px 176px;
@@ -140,29 +155,31 @@ const wispPaths = [
     pointer-events: none;
     transform-origin: 50% 100%;
   }
-  .cup-steam svg {
+  .wisp {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     overflow: visible;
-  }
-  .wisp {
-    stroke: var(--color-foam-50);
-    stroke-width: 18;
     opacity: 0.35;
     filter: blur(7px);
+    transform-origin: 50% 100%;
   }
-  .wisp-2 {
+  .wisp path {
+    stroke: var(--color-foam-50);
+    stroke-width: 18;
+  }
+  .wisp-2 path {
     stroke-width: 12;
   }
-  .wisp-3 {
+  .wisp-3 path {
     stroke-width: 14;
   }
 
   :global(html.motion) .wisp {
     opacity: 0;
+    will-change: transform, opacity;
     animation: steam-drift 5.5s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: 50% 100%;
   }
   :global(html.motion) .wisp-2 {
     animation-delay: -1.8s;
@@ -171,6 +188,10 @@ const wispPaths = [
   :global(html.motion) .wisp-3 {
     animation-delay: -3.4s;
     animation-duration: 5.1s;
+  }
+  /* no steam work at all while the cup is off screen */
+  .cup:global(.is-offscreen) .wisp {
+    animation-play-state: paused;
   }
   @keyframes steam-drift {
     0% {
