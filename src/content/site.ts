@@ -43,7 +43,7 @@ export const firstPour = '[6:30 am]';
 
 export const studio = {
   name: 'Depthwyn',
-  url: '[your Depthwyn website address]',
+  url: 'https://business-site.depthwyn.workers.dev',
   note: 'Concept project designed by',
   noteEnd: 'Not a real business.',
 };
