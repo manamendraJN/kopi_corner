@@ -72,6 +72,15 @@ import { ease, whatsappHref } from '../content/site';
     position: relative;
     padding-block: clamp(2.5rem, 6vw, 5rem) var(--spacing-section);
   }
+  /* scroll performance: moved/faded on the GPU, not repainted */
+  :global(html.motion) .ease-inner,
+  :global(html.motion) .docket,
+  :global(html.motion) .bubble-wrap {
+    will-change: transform;
+  }
+  :global(html.motion) .ease-shade {
+    will-change: opacity;
+  }
   .ease-shade {
     position: absolute;
     inset: 0;
